@@ -13,8 +13,7 @@ This documentation is organized into separate guides for easy reference:
 3. [Git Setup Guide](readme/git-setup.md) - Git installation and essential commands
 4. [Code Formatting Guide](readme/code-formatting.md) - Setting up Black and Ruff for code formatting and linting
 5. [Troubleshooting and Resources](readme/troubleshooting.md) - Common issues and additional learning resources
-6. [AI Engineer Roadmap](readme/AI%20Engineer%20Roadmap.md) - Roadmap for becoming AI Engineer
-7. [AI Engineer Time-Table](readme/AI%20Engineer%20Time-Table.md) - Time-Table for becoming AI Engineer
+6. [Installing Ollama with Docker on Windows 11](readme/docker-ollama.md) - Docker setup, Ollama installation, and working with AI models
 
 ## Version History
 
