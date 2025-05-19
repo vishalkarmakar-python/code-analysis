@@ -59,11 +59,11 @@
       "notebook.source.fixAll.ruff": "explicit"
     },
     "workbench.colorCustomizations": {
-      "titleBar.activeBackground": "#1B1A55",
-      "titleBar.border": "#1B1A55",
-      "titleBar.activeForeground": "#9290C3",
-      "titleBar.inactiveBackground": "#3d3c6f",
-      "titleBar.inactiveForeground": "#a2a1cc"
+      "titleBar.activeBackground": "#12372A",
+      "titleBar.border": "#12372A",
+      "titleBar.activeForeground": "#FBFADA",
+      "titleBar.inactiveBackground": "#36554a",
+      "titleBar.inactiveForeground": "#fcfbe0"
     }
   },
   "extensions": {
