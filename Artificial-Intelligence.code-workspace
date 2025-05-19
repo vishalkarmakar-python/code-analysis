@@ -1,0 +1,79 @@
+{
+  "folders": [
+    {
+      "path": "."
+    }
+  ],
+  "settings": {
+    "extensions.ignoreRecommendations": true,
+    "files.exclude": {
+      "**/.git": true,
+      "**/*.code-workspace": true,
+      "**/*.vscode": true,
+      "**/.venv": true,
+      "**/__pycache__": true,
+      ".gitignore": true,
+      "**/.ruff_cache": true,
+      "**/cls": true
+    },
+    //Pylance
+    "python.analysis.autoFormatStrings": true,
+    "python.analysis.inlayHints.functionReturnTypes": true,
+    "python.analysis.inlayHints.variableTypes": true,
+    "python.analysis.inlayHints.callArgumentNames": "off",
+    "python.languageServer": "Default",
+    "python.analysis.typeCheckingMode": "standard",
+    "pylint.severity": {
+      "convention": "Information",
+      "error": "Error",
+      "fatal": "Error",
+      "refactor": "Hint",
+      "warning": "Warning",
+      "info": "Information"
+    },
+    "[python]": {
+      // "editor.defaultFormatter": "ms-python.black-formatter",
+      "editor.defaultFormatter": "charliermarsh.ruff",
+      "editor.wordWrapColumn": 200,
+      "editor.formatOnSave": true,
+      "editor.codeActionsOnSave": {
+        "source.organizeImports": "always",
+        "source.fixAll.ruff": "always"
+      },
+      "editor.tabSize": 4
+    },
+    "pylint.args": ["max-line-length=150"],
+    "[jupyter]": {
+      // "editor.defaultFormatter": "ms-python.black-formatter",
+      "editor.defaultFormatter": "charliermarsh.ruff",
+      "editor.formatOnSave": true,
+      "editor.codeActionsOnSave": {
+        "source.organizeImports.ruff": "explicit",
+        "source.fixAll.ruff": "explicit"
+      }
+    },
+    // Ensure Python settings apply to Jupyter cells
+    "notebook.formatOnSave.enabled": true,
+    "notebook.codeActionsOnSave": {
+      "notebook.source.organizeImports.ruff": "explicit",
+      "notebook.source.fixAll.ruff": "explicit"
+    },
+    "workbench.colorCustomizations": {
+      "titleBar.activeBackground": "#1B1A55",
+      "titleBar.border": "#1B1A55",
+      "titleBar.activeForeground": "#9290C3",
+      "titleBar.inactiveBackground": "#3d3c6f",
+      "titleBar.inactiveForeground": "#a2a1cc"
+    }
+  },
+  "extensions": {
+    "recommendations": [
+      "ms-python.python", // Python extension
+      "ms-python.vscode-pylance", // Python language server
+      "tamasfe.even-better-toml", // Language Support for .toml files.
+      "ms-toolsai.jupyter", // Extension Pack for Interactive Jupyter Notebook support.
+      "charliermarsh.ruff", //Extension for PEP8.
+      "amodio.toggle-excluded-files" //Toggle unwanted files hidden
+    ]
+  }
+}
