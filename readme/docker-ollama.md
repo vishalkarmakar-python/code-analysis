@@ -1,47 +1,167 @@
-# Installing Ollama with Docker on Windows 11 (NVIDIA GPU)
+# Ollama Docker Setup and Usage Guide
 
-This guide will walk you through setting up Ollama in a Docker container on your Windows 11 system, with GPU acceleration enabled for your NVIDIA GeForce GTX 1650.
+This guide covers Ollama Docker image setup, container configuration, and essential commands for managing and interacting with language models locally using Ollama on Docker.
 
-**Your Local Machine Specs:**
+## Table of Contents
 
-- **Processor:** AMD Ryzen 7 4800H with Radeon Graphics
-- **RAM:** 32GB DDR4
-- **GPU:** NVIDIA GeForce GTX 1650 4GB
-- **HDD:** 500GB SSD
+- [Ollama Docker Setup](#ollama-docker-setup)
+  - [System Prerequisites](#system-prerequisites)
+  - [Downloading the Ollama Docker Image](#downloading-the-ollama-docker-image)
+  - [Initial Container Configuration and Launch](#initial-container-configuration-and-launch)
+    - [Understanding the `docker run` Parameters](#understanding-the-docker-run-parameters)
+- [Ollama Model Interaction & Management](#ollama-model-interaction--management)
+  - [Running and Interacting with a Model](#running-and-interacting-with-a-model)
+  - [Core Ollama and Docker Operations](#core-ollama-and-docker-operations)
+- [Advanced Topics & Workflow](#advanced-topics--workflow)
+  - [Accessing the Ollama API](#accessing-the-ollama-api)
+  - [Running Ollama on CPU (Without GPU)](#running-ollama-on-cpu-without-gpu)
+  - [Understanding Data Persistence (Volumes)](#understanding-data-persistence-volumes)
+  - [Updating Ollama and Models](#updating-ollama-and-models)
+- [Troubleshooting Common Issues](#troubleshooting-common-issues)
+- [Further Information & Best Practices](#further-information--best-practices)
 
-## Prerequisites
+## Ollama Docker Setup
 
-Before you begin, ensure your system meets the following requirements:
+This section details the prerequisites and steps to get the Ollama server running in a Docker container.
 
-| Prerequisite            | Details                                                                                                  | How to Check/Install                                                                                                                                                                                               |
-| :---------------------- | :------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Windows 11**          | Home or Pro version 21H2 or higher.                                                                      | Right-click Start > System > Windows specifications.                                                                                                                                                               |
-| **WSL 2**               | Windows Subsystem for Linux 2 enabled with a Linux distribution installed. WSL version 1.1.3.0 or later. | Open PowerShell as Administrator. Run `wsl --status`. If not installed or outdated, run `wsl --install` (this installs Ubuntu by default) or `wsl --update`. Ensure "Virtual Machine Platform" feature is enabled. |
-| **NVIDIA Drivers**      | Latest NVIDIA drivers for your GeForce GTX 1650 that support WSL 2 GPU Paravirtualization.               | Download from the [NVIDIA Driver Downloads](https://www.nvidia.com/Download/index.aspx) page. Select your GPU and OS. Install the Game Ready or Studio Driver.                                                     |
-| **Docker Desktop**      | The latest version of Docker Desktop for Windows.                                                        | Download from [Docker Desktop](https://www.docker.com/products/docker-desktop/).                                                                                                                                   |
-| **BIOS Virtualization** | CPU virtualization (e.g., AMD-V, SVM mode) must be enabled in your system's BIOS/UEFI settings.          | Restart your PC and enter BIOS/UEFI setup (often by pressing DEL, F2, F10, or F12 during boot). Look for "Virtualization Technology," "SVM Mode," or similar under CPU configuration.                              |
+### System Prerequisites
 
-## Installation and Setup Steps
+Before you begin, ensure you have the following:
 
-| Step   | Action                                        | Instructions                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| :----- | :-------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **1**  | **Enable WSL 2 & Install Linux Distro**       | 1. Open PowerShell as Administrator. <br> 2. If WSL is not installed, run `wsl --install`. This usually installs Ubuntu by default. If you have an older WSL version, run `wsl --set-default-version 2`. <br> 3. If you already have WSL installed, ensure it's updated by running `wsl --update`. <br> 4. Verify your distro is running in WSL 2 mode with `wsl -l -v`. If not, convert it using `wsl --set-version <distro_name> 2`.                                                                                                                                                                                                                                                                                                     |
-| **2**  | **Install/Update NVIDIA Drivers**             | Ensure you have the latest NVIDIA drivers installed as mentioned in the prerequisites. Restart your system after installation if prompted.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| **3**  | **Install/Update Docker Desktop**             | 1. Download Docker Desktop from the official website (link in prerequisites). <br> 2. Run the installer and follow the on-screen instructions. Ensure the "Use WSL 2 instead of Hyper-V (recommended)" option is checked during installation or in settings. <br> 3. Docker Desktop might require a restart.                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| **4**  | **Configure Docker Desktop for WSL 2 & GPU**  | 1. After installation, open Docker Desktop. <br> 2. Go to **Settings** (the gear icon). <br> 3. Under **General**, ensure "Use the WSL 2 based engine" is enabled. <br> 4. Under **Resources > WSL Integration**, ensure your installed Linux distribution (e.g., Ubuntu) is enabled for integration. <br> 5. Docker Desktop should automatically detect and allow GPU usage with WSL 2 if your drivers are compatible. There isn't usually a specific toggle for NVIDIA GPU in recent versions beyond enabling WSL 2 integration.                                                                                                                                                                                                         |
-| **5**  | **Verify Docker GPU Access (Optional)**       | 1. Open PowerShell or your WSL terminal. <br> 2. Run the following command to test if Docker can access your NVIDIA GPU: <br> `docker run --rm --gpus all nvcr.io/nvidia/k8s/cuda-sample:nbody nbody -gpu -benchmark` <br> 3. You should see output indicating the GPU is being used and a benchmark result. If this fails, re-check driver installation and WSL/Docker configuration.                                                                                                                                                                                                                                                                                                                                                     |
-| **6**  | **Pull the Ollama Docker Image**              | 1. Open PowerShell or your WSL terminal. <br> 2. Pull the official Ollama image: <br> `docker pull ollama/ollama`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
-| **7**  | **Run the Ollama Docker Container**           | 1. In PowerShell or your WSL terminal, run the following command to start the Ollama container with NVIDIA GPU access: <br> `docker run -d --gpus=all -v ollama:/root/.ollama -p 11434:11434 --name ollama ollama/ollama` <br> **Explanation of the command:** <br> `-d`: Run in detached mode (background). <br> `--gpus=all`: Makes all available GPUs accessible to the container. <br> `-v ollama:/root/.ollama`: Creates a Docker volume named `ollama` to persist models and data. <br> `-p 11434:11434`: Maps port 11434 on your host to port 11434 in the container. <br> `--name ollama`: Names the container `ollama`. <br> `ollama/ollama`: Specifies the image to use.                                                         |
-| **8**  | **Verify Ollama is Running**                  | 1. Check if the container is running: <br> `docker ps` <br> You should see `ollama` in the list of running containers. <br> 2. Check the logs (optional, for troubleshooting): <br> `docker logs ollama`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| **9**  | **Interact with Ollama (Pull & Run a Model)** | 1. Once the container is running, you can interact with Ollama through its CLI within the container. To pull a model (e.g., Llama 3 8B Instruct): <br> `docker exec -it ollama ollama pull llama3:8b-instruct` <br> _(Note: 4GB VRAM on the GTX 1650 might be a limitation for larger models or larger context sizes. You might need to experiment with smaller quantized models. For example, try `phi3:mini` or other models around the 3B parameter mark, often with `q4_0` or `q4_K_M` quantization for better performance on limited VRAM.)_ <br> 2. After the model is downloaded, run it: <br> `docker exec -it ollama ollama run llama3:8b-instruct` <br> 3. You can then type your prompts in the terminal. To exit, type `/bye`. |
-| **10** | **Accessing Ollama via API**                  | Ollama also exposes an API on `http://localhost:11434` which you can use with various clients or your own applications.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+1.  **Docker Installed:**
+    - Docker must be installed and running on your system.
+    - Download from the [official Docker website](https://docs.docker.com/get-docker/).
+2.  **GPU for Acceleration (Recommended):**
+    - An **NVIDIA GPU** is highly recommended for optimal performance with larger models.
+    - Ensure **up-to-date NVIDIA drivers** are installed on your host system.
+    - **NVIDIA Container Toolkit** (for Linux users): This must be installed to enable GPU access for Docker containers.
+    - **Docker Desktop (Windows/macOS):** GPU support can usually be enabled through Docker Desktop's settings.
+3.  **Sufficient System Resources:**
+    - Adequate free **disk space** for the Ollama Docker image and downloaded language models (which can be several gigabytes each).
+    - Sufficient **RAM** and **GPU VRAM** (especially for larger models).
+4.  **Internet Connection:**
+    - An active internet connection is required to download the Ollama Docker image and the language models.
 
-## Troubleshooting Tips
+### Downloading the Ollama Docker Image
 
-- **Insufficient VRAM:** Your NVIDIA GeForce GTX 1650 has 4GB of VRAM. This will limit the size of the models you can run effectively or the context window size. Look for smaller, quantized models (e.g., ending in `q4_0`, `q4_K_M`, `q5_K_M`) which are optimized for less VRAM usage. Common models to try might include Phi-3 Mini, Llama 3 8B (quantized), Mistral 7B (quantized), or Gemma 2B/7B (quantized).
-- **`docker exec` error "No such container":** Ensure the Ollama container is running (`docker ps`). If not, try starting it again (`docker start ollama`) or check the logs (`docker logs ollama`) for errors during startup.
-- **WSL Issues:** If you encounter WSL errors, ensure it's properly installed and your default version is 2. Commands like `wsl --shutdown` followed by restarting Docker Desktop can sometimes resolve issues.
-- **NVIDIA Driver/CUDA issues inside container:** If Ollama doesn't detect the GPU (you can check logs or model loading speed), double-check that Docker Desktop GPU support for WSL2 is functioning (Step 5). Ensure your NVIDIA drivers are up-to-date.
-- **AMD Integrated GPU:** While your CPU has Radeon graphics, these instructions focus on leveraging your dedicated NVIDIA GPU for Docker, as NVIDIA GPU passthrough in Docker Desktop for Windows via WSL2 is more mature. Ollama does have preview support for AMD GPUs, but configuring it within Docker on Windows for the iGPU is more complex and less commonly documented than NVIDIA.
+This is the first step to get the necessary Ollama software.
 
-This setup should allow you to run Ollama locally, taking advantage of your NVIDIA GPU's processing power for faster inference.
+1.  **Pull the Image**
+    - Open your terminal or command prompt.
+    - Execute the following command:
+      ```bash
+      docker pull ollama/ollama
+      ```
+    - **Explanation:** This command fetches the latest official `ollama/ollama` image from Docker Hub. This image contains the Ollama server application and command-line interface. You typically only need to do this once or when you want to update to a newer version of the Ollama image.
+
+### Initial Container Configuration and Launch
+
+Once the image is downloaded, you need to run it as a container with the appropriate configuration.
+
+1.  **Run the Ollama Container**
+    - Execute the following command in your terminal:
+      ```bash
+      docker run -d --gpus=all -v ollama:/root/.ollama -p 11434:11434 --name ollama ollama/ollama
+      ```
+    - This command starts the Ollama server in a detached Docker container.
+
+#### Understanding the `docker run` Parameters
+
+Each flag in the `docker run` command plays a crucial role:
+
+- **`-d` (Detached Mode):**
+  - Runs the container in the background, allowing you to continue using your terminal.
+  - The Ollama server will run as a background service.
+- **`--gpus=all` (GPU Acceleration):**
+  - Makes all available NVIDIA GPUs on your host system accessible to the container. This significantly speeds up model inference.
+  - If you do not have an NVIDIA GPU or do not wish to use it, you can omit this flag (see [Running Ollama on CPU](#running-ollama-on-cpu-without-gpu)).
+- **`-v ollama:/root/.ollama` (Volume Mounting for Persistence):**
+  - Mounts a Docker named volume called `ollama` to the `/root/.ollama` directory inside the container.
+  - **Importance:** Ollama stores downloaded models and its configuration in `/root/.ollama`. Using a named volume ensures that this data persists even if the container is stopped, removed, and recreated. Without this, you would lose all downloaded models when the container is removed.
+- **`-p 11434:11434` (Port Mapping):**
+  - Publishes port `11434` of the container to port `11434` on your host machine.
+  - Ollama's API server listens on port `11434` by default. This mapping allows you (and other applications on your host) to communicate with the Ollama API.
+- **`--name ollama` (Container Naming):**
+  - Assigns a user-friendly name (`ollama`) to your container.
+  - This makes it easier to refer to the container in subsequent Docker commands (e.g., `docker stop ollama`, `docker logs ollama`).
+- **`ollama/ollama` (Image Name):**
+  - Specifies the Docker image to use for creating the container (the one you pulled in the previous step). By default, this image is configured to start the `ollama serve` command.
+
+## Ollama Model Interaction & Management
+
+This section covers essential commands for interacting with models via Ollama and managing your Ollama Docker environment.
+
+### Running and Interacting with a Model
+
+After the Ollama server container is running, you can interact with language models.
+
+1.  **Execute `ollama run` inside the container:**
+
+    - Use the following command:
+      ```bash
+      docker exec -it ollama ollama run llama3.2:3b
+      ```
+    - **Note on Model Name:** The model tag `llama3.2:3b` is used here as per your specific request. Please verify that this exact model tag is available in the [Ollama Library](https://ollama.com/library). Common Llama 3 tags include `llama3:8b`, `llama3:70b`, and their instruct versions (e.g., `llama3:8b-instruct`). If `llama3.2:3b` is not found, you will need to replace it with a valid model tag.
+
+2.  **Command Breakdown:**
+
+    - `docker exec`: Executes a command inside an already **running container**.
+    - `-it`: Allocates a **pseudo-TTY** (`-t`) and keeps **stdin open** (`-i`). This is crucial for an interactive session with the model.
+    - `ollama`: The name of the running container (as specified by `--name ollama` in the `docker run` command).
+    - `ollama run llama3.2:3b`: This is the Ollama CLI command to run the specified model.
+      - If the model (`llama3.2:3b` in this case) is not already present in the `ollama` volume, Ollama will automatically download it first.
+      - After the model is available, it will be loaded, and you'll enter an interactive chat session in your terminal.
+
+3.  **Interacting:**
+    - Once the model loads, you can type your prompts and press `Enter` to get responses.
+    - To exit the interactive session, type `/bye` and press `Enter`, or use `Ctrl+D`.
+
+### Core Ollama and Docker Operations
+
+Here's a table of common commands for managing your Ollama setup:
+
+| Category              | Operation                          | Command                                           | Description                                                                                                                                                                   |
+| --------------------- | ---------------------------------- | ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Model Management**  | List downloaded models             | `docker exec ollama ollama list`                  | Shows all language models currently downloaded and available in your Ollama instance.                                                                                         |
+|                       | Pull a new model                   | `docker exec ollama ollama pull <model_name:tag>` | Downloads a new model from the Ollama library (e.g., `docker exec ollama ollama pull mistral:latest`).                                                                        |
+|                       | Remove a model                     | `docker exec ollama ollama rm <model_name:tag>`   | Deletes a downloaded model from your Ollama instance to free up space.                                                                                                        |
+| **Container Ops**     | View container logs                | `docker logs ollama`                              | Displays the logs generated by the Ollama server running inside the container. Useful for troubleshooting.                                                                    |
+|                       | Stop the container                 | `docker stop ollama`                              | Gracefully stops the running `ollama` container. The server will no longer be accessible.                                                                                     |
+|                       | Start the container                | `docker start ollama`                             | Restarts a previously stopped `ollama` container.                                                                                                                             |
+|                       | Remove the container               | `docker rm ollama`                                | Deletes the `ollama` container. **Note:** If you used the `-v ollama:/root/.ollama` volume, your models will NOT be deleted. If you didn't, container removal deletes models. |
+|                       | View running containers            | `docker ps`                                       | Lists all currently running Docker containers.                                                                                                                                |
+|                       | View all containers (inc. stopped) | `docker ps -a`                                    | Lists all Docker containers, including those that are stopped.                                                                                                                |
+| **Volume Management** | Inspect volume                     | `docker volume inspect ollama`                    | Shows details about the `ollama` named volume, including its mount point on the host.                                                                                         |
+|                       | List volumes                       | `docker volume ls`                                | Lists all Docker volumes on your system.                                                                                                                                      |
+|                       | Remove volume (USE CAUTION!)       | `docker volume rm ollama`                         | **Deletes the `ollama` volume and all models stored within it.** Use only if you intend to remove all Ollama data. Ensure the container is stopped and removed first.         |
+
+## Advanced Topics & Workflow
+
+This section delves into more advanced usage patterns and configurations.
+
+### Accessing the Ollama API
+
+With the Ollama server running and port `11434` published, you can interact with its REST API directly from your host machine or other applications.
+
+- **Example: List models using `curl`** (if `curl` is installed on your host):
+  ```bash
+  curl http://localhost:11434/api/tags
+  ```
+- **Example: Generate text with a model via API:**
+  ```bash
+  curl http://localhost:11434/api/generate -d '{
+    "model": "llama3.2:3b", # Ensure this model is available
+    "prompt": "Why is the sky blue?",
+    "stream": false
+  }'
+  ```
+  (Remember to replace `llama3.2:3b` with an available model if needed).
+- The API can be used to integrate Ollama into your own applications, scripts, or custom frontends. Refer to the [Ollama API documentation](https://github.com/ollama/ollama/blob/main/docs/api.md) for more details.
+
+### Running Ollama on CPU (Without GPU)
+
+If you don't have an NVIDIA GPU or prefer to run on CPU, modify the `docker run` command by omitting the `--gpus=all` flag:
+
+```bash
+docker run -d -v ollama:/root/.ollama -p 11434:11434 --name ollama ollama/ollama
+```
