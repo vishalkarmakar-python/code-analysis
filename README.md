@@ -11,9 +11,9 @@ This documentation is organized into separate guides for easy reference:
 1. [VS Code Setup Guide](readme/vs-code_setup_guide.md) - VS Code setup, Jupyter integration, and keyboard shortcuts
 2. [Python Setup Guide](readme/python-setup.md) - Python installation and package management
 3. [Git Setup Guide](readme/git-setup.md) - Git installation and essential commands
-4. [Code Formatting Guide](readme/code-formatting.md) - Setting up Black and Ruff for code formatting and linting
-5. [Troubleshooting and Resources](readme/troubleshooting.md) - Common issues and additional learning resources
-6. [Installing Ollama with Docker on Windows 11](readme/docker-ollama.md) - Docker setup, Ollama installation, and working with AI models
+4. [PostgreSQL with PGVector and Ollama Setup with Docker ](readme/docker_setup-postgres_with_pgvector_and_ollama.md) - Docker setup, Ollama installation, and working with AI models
+5. [Code Formatting Guide](readme/code-formatting.md) - Setting up Black and Ruff for code formatting and linting
+6. [Troubleshooting and Resources](readme/troubleshooting.md) - Common issues and additional learning resources
 
 ## Version History
 
