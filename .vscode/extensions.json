@@ -1,0 +1,10 @@
+{
+  "recommendations": [
+    "ms-python.python", // Python extension
+    "ms-python.vscode-pylance", // Python language server
+    "tamasfe.even-better-toml", // Language Support for .toml files.
+    "ms-toolsai.jupyter", // Extension Pack for Interactive Jupyter Notebook support.
+    "charliermarsh.ruff", //Extension for PEP8.
+    "amodio.toggle-excluded-files" //Toggle unwanted files hidden
+  ]
+}
