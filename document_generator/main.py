@@ -1,5 +1,5 @@
 def main():
-    print("Hello from specification-generator!")
+    print("Hello from document-generator!")
 
 
 if __name__ == "__main__":
