@@ -15,6 +15,7 @@ dependencies = [
     "python-multipart>=0.0.20",
     "sqlmodel>=0.0.24",
     "streamlit>=1.45.1",
+    "unstructured>=0.17.2",
 ]
 
 [dependency-groups]

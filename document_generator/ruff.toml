@@ -1,4 +1,4 @@
-line-length = 110                       # Maximum allowed line length before wrapping
+line-length = 140                       # Maximum allowed line length before wrapping
 indent-width = 4                        # Number of spaces for each indentation level
 target-version = "py313"                # Python version to target, adjusts available features
 

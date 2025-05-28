@@ -2,9 +2,10 @@ from os import getcwd, listdir
 from pathlib import Path
 from streamlit.web import cli
 from sys import argv, exit
+from typing import NoReturn
 
 
-def run_streamlit():
+def run_streamlit() -> NoReturn:
     curent_directory: Path = Path(__file__).parent
     streamlit_app: Path = curent_directory / "app" / "streamlit" / "webapp.py"
     if streamlit_app.exists:
