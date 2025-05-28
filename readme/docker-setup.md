@@ -179,13 +179,13 @@ Choose between the standard and GPU-accelerated versions:
 #### With GPU Acceleration (Recommended)
 
 ```powershell
-docker run -d -p 3001:8080 --gpus all -v open-webui:/app/backend/data --name open-webui ghcr.io/open-webui/open-webui:cuda
+docker run -d -p 3001:8080 --gpus all -e WEBUI_AUTH=False -v webui:/app/backend/data --name webui ghcr.io/open-webui/open-webui:cuda
 ```
 
 #### CPU Only Version
 
 ```powershell
-docker run -d -p 3001:8080 -v open-webui:/app/backend/data --name open-webui ghcr.io/open-webui/open-webui:main
+docker run -d -p 3001:8080 -e WEBUI_AUTH=False -v open-webui:/app/backend/data --name open-webui ghcr.io/open-webui/open-webui:main
 ```
 
 #### Container Parameters Explained
