@@ -1,0 +1,55 @@
+line-length = 140                       # Maximum allowed line length before wrapping
+indent-width = 4                        # Number of spaces for each indentation level
+target-version = "py313"                # Python version to target, adjusts available features
+
+[format]
+# Code formatting preferences
+indent-style = "space"                  # Use spaces for indentation instead of tabs
+quote-style = "double"                  # Uses double quotes for strings ("example" instead of 'example')
+line-ending = "auto"                    # Automatically detects and uses appropriate line endings
+skip-magic-trailing-comma = false       # Keeps trailing commas in multi-line structures
+docstring-code-format = true            # Format code blocks inside docstrings
+
+[lint]
+# Linting rule selection
+select = [
+    "F",                                # Pyflakes: Detects logical errors like undefined names, unused imports
+    "E",                                # Error-level PEP8: Catches serious style violations affecting functionality
+    "W",                                # Warning-level PEP8: Identifies style issues affecting readability
+    "B",                                # Bugbear: Catches likely bugs and problematic code patterns
+    "C",                                # Comprehensions: Suggests cleaner list/dict/set comprehension expressions
+]           
+# Rule exclusions
+ignore = [
+    "I",                                # Disables all isort-related rules for import formatting
+    "D",                                # Disables pydocstyle rules for docstring style checking
+    "B008",                             # Disables the rule for using 'is' to compare with None
+    "E722",                             # Disables the rule for using bare 'except' clauses
+    "B904",                             # Disables the rule for using 'assert' statements in tests
+    "F841",                             # Disables the rule for unused local variables
+    "W293",                             # Disables the rule for blank lines containing whitespace
+    "W291",                             # Disable Trailing whitespace
+    "C901",                             # Disable Function is too complex
+    "E501",                             # 
+]
+
+[lint.isort]
+split-on-trailing-comma = true
+# Import organization preferences
+section-order = [
+    "STDLIB",                           # Python standard library (e.g., import os, import sys)
+    "THIRDPARTY",                       # External installed packages (e.g., import requests)
+    "FIRSTPARTY",                       # Your project's own modules (e.g., from app.models import User)
+    "LOCALFOLDER",                      # Modules in the same directory (e.g., from .utils import helper)
+    "FUTURE",                           # __future__ imports (e.g., from __future__ import annotations)
+    "DEFAULT-SECTION",                  # Any imports that don't match other categories
+]
+# Sections that should not have blank lines before them
+no-lines-before = [
+    "STDLIB",                           # No blank line before standard library imports
+    "THIRDPARTY",                       # No blank line before external package imports
+    "FIRSTPARTY",                       # No blank line before your project's modules
+    "LOCALFOLDER",                      # No blank line before same-directory imports
+    "FUTURE",                           # No blank line before future imports
+    "DEFAULT-SECTION",                  # No blank line before uncategorized imports
+]
