@@ -109,7 +109,7 @@ with submit_button_column:
                 spec=spec_documents,
                 mode="comprehensive",  # Use comprehensive mode for detailed documentation
             )
-            st.write(prompt_text)
+            # st.write(prompt_text)
             ollama: Llama3 = Llama3()
             if ollama.initialize_llm(model_name="OLLAMA"):
                 # Placeholder for actual documentation generation logic

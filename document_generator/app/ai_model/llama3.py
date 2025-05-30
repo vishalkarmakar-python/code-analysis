@@ -204,9 +204,7 @@ class Llama3:
                     self._config[var] = getenv(key=var)
 
                 # Check for any missing required variables
-                missing_vars: List[str] = [
-                    var for var, value in self._config.items() if var in required_vars and value is None
-                ]
+                missing_vars: List[str] = [var for var, value in self._config.items() if var in required_vars and value is None]
 
                 if missing_vars:
                     raise Exception(f"Missing required environment variables: {', '.join(missing_vars)}")
