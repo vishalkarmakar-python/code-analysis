@@ -11,6 +11,17 @@
       "env": {
         "DEBUG": "true"
       }
+    },
+    {
+      "name": "Code Analyzer",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/code-analyzer/run.py",
+      "console": "integratedTerminal",
+      "justMyCode": true,
+      "env": {
+        "DEBUG": "true"
+      }
     }
   ]
 }

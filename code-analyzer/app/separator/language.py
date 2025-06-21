@@ -1,4 +1,4 @@
-class Separators:
+class Language_Abap:
     """
     Class to hold the separators used in the document generator.
     This class provides methods to create text splitters for ABAP code and generic documents.
