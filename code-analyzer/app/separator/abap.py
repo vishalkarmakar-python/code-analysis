@@ -1,19 +1,37 @@
-class Language_Abap:
+from typing import Dict, List
+
+
+class ABAP:
     """
     Class to hold the separators used in the document generator.
     This class provides methods to create text splitters for ABAP code and generic documents.
     """
 
-    ABAP: list[str] = [
+    KEYWORD: Dict[str, str] = {
+        # CDS Entities.
+        "DEFINE ROOT VIEW ENTITY": "ROOT ENTITY",  # CDS Root Entity
+        "PROVIDER CONTRACT TRANSACTIONAL_QUERY": "PROJECTION ENTITY",  # CDS Projection Entity
+        "DEFINE VIEW ENTITY": "VIEW ENTITY",  # CDS View Entity
+        "DEFINE ABSTRACT ENTITY": "ABSTRACT ENTITY",  # CDS Abstract Entity
+        "DEFINE VIEW": "CDS VIEW",  # CDS View
+        "DEFINE TABLE FUNCTION": "CDS TABLE FUNCTION",  # CDS Table Function
+        "ANNOTATE ENTITY": "METADATA EXTENSION",  # CDS Metadata Extension
+        "DEFINE ACCESS CONTROL": "ACCESS CONTROL",  # Start of a DCL (Data Control Language) definition
+        "#VALUE_HELP": "VALUE HELP",  # Value Help
+        # Behavior Definition and Projections
+    }
+
+    SEPARATOR: List[str] = [
         # --- RAP (ABAP RESTful Application Programming Model) Object Definitions & Ends ---
         # These are top-level definitions in RAP development.
-        "\nDEFINE ROOT ENTITY",  # Start of a root CDS entity definition (conceptual)
-        "\nDEFINE ENTITY",  # Start of a CDS entity definition
+        "\nDEFINE ROOT VIEW ENTITY",  # Start of a root CDS entity definition (conceptual)
+        "\nDEFINE PROJECTION VIEW ENTITY",  # Start of a projection CDS entity definition (conceptual)
         "\nDEFINE VIEW ENTITY",  # Start of a CDS view entity
         "\nDEFINE ABSTRACT ENTITY",  # Start of a CDS abstract entity
         "\nDEFINE CUSTOM ENTITY",  # Start of a CDS custom entity
+        "\nDEFINE ENTITY",  # Start of a CDS entity definition
+        "\nDEFINE VIEW",  # Start of a CDS view definition
         "\nDEFINE TABLE FUNCTION",  # Start of a CDS table function
-        "\nDEFINE PROJECTION VIEW",  # Start of a CDS projection view
         "\nDEFINE HIERARCHY",  # Start of a CDS hierarchy
         "\nDEFINE METADATA EXTENSION",  # Start of a CDS metadata extension
         "\nDEFINE ANNOTATION",  # Start of a CDS annotation definition
@@ -76,6 +94,7 @@ class Language_Abap:
         "\nENDTRY.",  # End of a TRY-CATCH block
         "\nCLEANUP.",  # Start of a CLEANUP block
         "\nSELECT ",  # Start of a SELECT statement (Open SQL)
+        "\nSELECT SINGLE",  # Start of a SELECT SINGLE statement (Open SQL)
         "\nENDSELECT.",  # End of a SELECT...ENDSELECT block (obsolete but might exist)
         "\nPROVIDE ",  # Start of a PROVIDE statement (obsolete)
         "\nENDPROVIDE.",  # End of a PROVIDE block (obsolete but might exist)

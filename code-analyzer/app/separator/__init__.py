@@ -1,4 +1,4 @@
-from app.separator.language import Language_Abap
+from app.separator.abap import ABAP
 from typing import List
 
-__all__: List[str] = ["Language_Abap"]
+__all__: List[str] = ["ABAP"]

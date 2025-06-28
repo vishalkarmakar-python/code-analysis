@@ -1,4 +1,4 @@
-from app.language_model.gemma3 import Gemma3
+from app.language_model.ollama import Ollama
 from typing import List
 
-__all__: List[str] = ["Gemma3"]
+__all__: List[str] = ["Ollama"]

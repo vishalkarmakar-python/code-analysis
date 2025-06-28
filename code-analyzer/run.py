@@ -1,7 +1,8 @@
 from app.document_loader.document_loader_abap import Document_Loader_ABAP
 from app.document_splitter.document_splitter_abap import Document_Splitter_ABAP
-from app.language_model import Gemma3
+from app.language_model import Ollama
 from app.prompt_generator.prompt_generator_abap import PromptGeneratorABAP
+from app.token_manager import CL100K
 from langchain_core.documents.base import Document
 from langchain_core.messages.base import BaseMessage
 from langchain_core.prompt_values import PromptValue
@@ -21,33 +22,34 @@ def main() -> None:
 
     if code_directory_path:
         document_loader: Document_Loader_ABAP = Document_Loader_ABAP()
-        abap_documents: List[Document] = document_loader.load_directory(directories=code_directory_path)
-
         abap_splitter: Document_Splitter_ABAP = Document_Splitter_ABAP()
-        code_files: Dict[str, List[Document]] = abap_splitter.split_documents(
-            documents=abap_documents,
-            chunk_size=2048,
-        )
         abap_prompt: PromptGeneratorABAP = PromptGeneratorABAP()
-        llm_gemma3: Gemma3 = Gemma3()
-        for file_name, document_chunks in code_files.items():
-            print(f"\nProcessing file: {file_name}")
-            print(f"Number of chunks: {len(document_chunks)}")
-            prompt: PromptValue = abap_prompt.create_code_analysis_prompt(
+        llm: Ollama = Ollama(model_name="GEMMA")
+
+        abap_documents: List[Document] = document_loader.load_directory(directories=code_directory_path)
+        code_files: Dict[str, List[Document]] = abap_splitter.split_documents(documents=abap_documents, chunk_size=1024)
+
+        # Store results for each file
+        file_analyses: Dict[str, List[str]] = abap_prompt.create_code_response(code_files=code_files)
+        print(f"Total Files: {len(file_analyses)}")
+
+        # Generate File Summary.
+        for file_name, file_chunk in file_analyses.items():
+            file_summary_prompt: PromptValue = abap_prompt.create_file_summary_prompt(
                 file_name=file_name,
-                document_chunks=document_chunks,
+                chunk_analyses=file_chunk,
             )
-            # print(f"Generated prompt for {file_name}:\n{prompt.to_string()}\n")
-            llm_response: BaseMessage = llm_gemma3.invoke_llm(prompt=prompt)
-            print(f"LLM Response for {file_name}:\n{llm_response.content}\n")
+            # Calculate total prompt tokens
+            file_summary_prompt_tokens: int = CL100K.calculate_token(file_summary_prompt.to_string())
+            # Send to LLM
+            if llm.is_initialized:
+                with llm.get_llm() as model:
+                    chunk_response: BaseMessage = model.invoke(input=file_summary_prompt)
+                    chunk_response_content: str = chunk_response.model_dump()["content"]
+                    print(f"    LLM Response for file {file_name}:\n{chunk_response_content}\n")
+                    print(f"    ✓ File {file_name} processed successfully")
 
-        # print("\nABAP Code Analysis Prompt:")
-        # print(f"\nLoaded {len(code_files)} ABAP code chunks from the directory.")
-        # print(f"\nLoaded {len(abap_documents)} ABAP code documents from the directory.")
-
-        # Clear the directory after loading documents
-        # check: bool = document_loader.clear_directory
-        # print(f"\nDirectory cleared: {check}")
+        print("\nAll files processed successfully!")
 
 
 if __name__ == "__main__":
