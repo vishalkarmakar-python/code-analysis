@@ -1,5 +1,5 @@
+from app.language_model import Ollama
 from app.separator.abap import ABAP
-from app.token_manager import CL100K
 from hashlib import md5
 from langchain_core.documents.base import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -27,13 +27,13 @@ class Document_Splitter_ABAP:
         self._split_documents: Dict[str, List[Document]] = {}
         """Split ABAP code documents into smaller chunks."""
         self._splitter: RecursiveCharacterTextSplitter = self.create_abap_splitter(chunk_size=chunk_size)
+        llm: Ollama = Ollama(model_name="GEMMA")
         for document_index, document in enumerate(documents, 1):
             document_chunks_with_context: List[Document] = self._generate_context_for_document_chunks(
-                document=document,
+                llm=llm,
                 document_id=self._generate_document_id(document_index=document_index, document=document),
                 document_metadata=document.metadata.copy(),
                 document_chunks=self._splitter.split_documents(documents=[document]),
-                token_count=CL100K.calculate_token(page_content=document.page_content),
             )
             self._split_documents[Path(document.metadata["source"]).stem] = document_chunks_with_context
 
@@ -73,11 +73,10 @@ class Document_Splitter_ABAP:
 
     def _generate_context_for_document_chunks(
         self,
-        document: Document,
+        llm: Ollama,
         document_id: str,
         document_metadata: Dict,
         document_chunks: List[Document],
-        token_count: int,
     ) -> List[Document]:
         chunks_with_context: List[Document] = []
         """Add context to each document chunk."""
@@ -91,7 +90,7 @@ class Document_Splitter_ABAP:
                     # Chunk information
                     "chunk_index": chunk_index,
                     "chunk_id": f"{document_id}_chunk_{chunk_index}",
-                    "chunk_token_count": CL100K.calculate_token(page_content=chunk.page_content),
+                    "chunk_token_count": llm.get_llm_instance.get_num_tokens(text=chunk.page_content),
                     "chunk_size": len(chunk.page_content),
                     # Context indicators
                     "is_first_chunk": chunk_index == 0,

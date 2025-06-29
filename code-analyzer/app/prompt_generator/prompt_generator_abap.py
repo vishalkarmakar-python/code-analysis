@@ -1,5 +1,4 @@
 from app.language_model import Ollama
-from app.token_manager import CL100K
 from langchain_core.documents.base import Document
 from langchain_core.messages.base import BaseMessage
 from langchain_core.prompt_values import PromptValue
@@ -19,15 +18,19 @@ class PromptGeneratorABAP:
         if not hasattr(self, "_initialized"):
             self._initialized: bool = True
 
-    def create_code_response(self, code_files: Dict[str, List[Document]]) -> Dict[str, List[str]]:
+    def code_analysis(
+        self,
+        code_files: Dict[str, List[Document]],
+        llm: Ollama,
+    ) -> Dict[str, List[Document]]:
         # Store results for each file
-        anlyzed_files: Dict[str, List[str]] = {}
+        anlyzed_files: Dict[str, List[Document]] = {}
         # Initialize the LLM
-        llm: Ollama = Ollama(model_name="GEMMA")
         # Process each file
         print(f"\nTotal files to process: {len(code_files)}")
         for file_name, document_chunks in code_files.items():
-            anlyzed_document_chunk: List[str] = []
+            anlyzed_document_chunk: str = ""
+            anlyzed_document_metadata: Dict = {}
             print(f"\nProcessing file: {file_name}")
             print(f"Number of chunks: {len(document_chunks)}")
 
@@ -44,24 +47,40 @@ class PromptGeneratorABAP:
                     total_chunks=len(document_chunks),
                 )
                 # Calculate total prompt tokens
-                prompt_tokens: int = CL100K.calculate_token(single_chunk_prompt.to_string())
-                print(f"    Total prompt tokens: {prompt_tokens}")
-
-                document_test: Document
+                CL100K_prompt_tokens: int = llm.get_token_count(content=single_chunk_prompt.to_string())
+                print(f"    Total prompt tokens: {CL100K_prompt_tokens}")
+                # Store the master metadata
+                if not anlyzed_document_metadata:
+                    # anlyzed_document_metadata = document_chunk.metadata.copy()
+                    anlyzed_document_metadata = {
+                        "source": document_chunk.metadata.get("source"),
+                        "document_type": document_chunk.metadata.get("document_type"),
+                        "document_id": document_chunk.metadata.get("document_id"),
+                    }
 
                 # Send to LLM
                 if llm.is_initialized:
                     with llm.get_llm() as model:
+                        prompt_tokens = model.get_num_tokens(text=single_chunk_prompt.to_string())
                         chunk_response: BaseMessage = model.invoke(input=single_chunk_prompt)
                         chunk_response_content: str = chunk_response.model_dump()["content"]
                         print(f"    LLM Response for chunk {document_chunk_index}:\n{chunk_response_content}\n")
                         # Store the response for this chunk
-                        anlyzed_document_chunk.append(chunk_response_content)
+                        anlyzed_document_chunk = anlyzed_document_chunk + (f"\n{chunk_response_content}\n")
+                        # .append(Document(page_content=chunk_response_content))
                         print(f"    ✓ Chunk {document_chunk_index} processed successfully")
 
             print(f"\nFile {file_name} processed with {len(anlyzed_document_chunk)} chunks.")
             # Store analyses for this file
-            anlyzed_files[file_name] = anlyzed_document_chunk
+            anlyzed_files.setdefault(
+                file_name,
+                [],
+            ).append(
+                Document(
+                    metadata=anlyzed_document_metadata,
+                    page_content=anlyzed_document_chunk,
+                )
+            )
 
         return anlyzed_files
 
@@ -98,7 +117,7 @@ class PromptGeneratorABAP:
     def create_file_summary_prompt(
         self,
         file_name: str,
-        chunk_analyses: List[str],
+        chunk_analyses: List[Document],
     ) -> PromptValue:
         """
         Create a prompt for generating a comprehensive file summary
@@ -153,22 +172,8 @@ class PromptGeneratorABAP:
 
     @property
     def _single_chunk_prompt_template(self) -> str:
-        # return """
-        # You are an expert ABAP developer. Analyze the code chunk and provide the observation in a tabular format for:
-        # - If code chunk has Class Definition or Implementation only
-        # - If code chunk has CDS Root Entites Fields and Datatypes only
-        # - If code chunk has Method Definition or Implementation only
-        # - If code chunk has Import Parameters only
-        # - If code chunk has Export Parameters only
-        # - If code chunk has Changing Parameters only
-        # - If code chunk has Returning Parameters only
-        # - If code chunk has CDS Projection Entites Fields and Datatypes only
-        # - If code chunk has CDS Behavior Definition only
-        # - If code chunk has CDS Behavior Projection only
-        # - If code chunk has CDS Behavior Projection only
         return """
-        You are an expert ABAP developer. Analyze the code chunk and summarize in a tabular format if the chunk has: 
-        - CDS Root View Entity with Fields and it's Datatypes
+        You are an expert ABAP developer. Analyze the code chunk and summarize in a tabular format
 
         File: {file_name}
         Chunk: {chunk_index}/{total_chunks}
@@ -177,7 +182,7 @@ class PromptGeneratorABAP:
         {chunk_content}
 
         Keep the response comprehensive but concise.
-    """
+        """
 
     @property
     def _file_summary_prompt_template(self) -> str:
@@ -198,7 +203,7 @@ class PromptGeneratorABAP:
             - Technical architecture
 
             Keep the response comprehensive but concise.
-        """
+            """
 
     @property
     def _analyze_prompt_template(self) -> str:
@@ -214,4 +219,4 @@ class PromptGeneratorABAP:
         - Do not include any code snippets in your response.
         - Focus on the functionality and purpose of the code.
         - Provide methods, function modules parameters in tabular format explaining their roles
-    """
+        """
