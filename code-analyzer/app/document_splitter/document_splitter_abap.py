@@ -19,11 +19,7 @@ class Document_Splitter_ABAP:
         if not hasattr(self, "_initialized"):
             self._initialized: bool = True
 
-    def split_documents(
-        self,
-        documents: List[Document],
-        chunk_size: int,
-    ) -> Dict[str, List[Document]]:
+    def split_documents(self, documents: List[Document], chunk_size: int) -> Dict[str, List[Document]]:
         self._split_documents: Dict[str, List[Document]] = {}
         """Split ABAP code documents into smaller chunks."""
         self._splitter: RecursiveCharacterTextSplitter = self.create_abap_splitter(chunk_size=chunk_size)
@@ -39,10 +35,7 @@ class Document_Splitter_ABAP:
 
         return self._split_documents
 
-    def create_abap_splitter(
-        self,
-        chunk_size: int,
-    ) -> RecursiveCharacterTextSplitter:
+    def create_abap_splitter(self, chunk_size: int) -> RecursiveCharacterTextSplitter:
         """Create a text splitter optimized for ABAP code."""
         return RecursiveCharacterTextSplitter(
             separators=ABAP.SEPARATOR,
@@ -53,11 +46,7 @@ class Document_Splitter_ABAP:
             keep_separator=True,
         )
 
-    def _generate_document_id(
-        self,
-        document_index: int,
-        document: Document,
-    ) -> str:
+    def _generate_document_id(self, document_index: int, document: Document) -> str:
         """Generate a unique document ID based on source and content."""
         # Use source path if available, otherwise use content hash
         if "source" in document.metadata:
