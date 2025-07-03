@@ -1,5 +1,5 @@
-from app.language_model.ollama import Ollama
-from app.prompt_generator.prompt_generator_abap import PromptGeneratorABAP
+from app.language_model import Ollama
+from app.prompt_generator import PromptGenerator
 from langchain_core.documents.base import Document
 from langchain_core.messages.base import BaseMessage
 from langchain_core.prompt_values import PromptValue
@@ -21,12 +21,68 @@ class CodeAnalysis:
             self.MAX_TOKENS_PER_BATCH = 3000  # Conservative limit
             self.MAX_CHUNKS_PER_BATCH = 5  # Fallback limit by chunk count
 
+    def code_chunk_analysis(
+        self,
+        code_files: Dict[str, List[Document]],
+        prompt_instance: PromptGenerator,
+        llm_instance: Ollama,
+    ) -> Dict[str, List[Document]]:
+        # Store results for each file
+        anlyzed_files: Dict[str, List[Document]] = {}
+        # Process each file
+        print(f"\nTotal files to process: {len(code_files)}")
+        for file_name, documents in code_files.items():
+            anlyzed_document: List[Document] = []
+            anlyzed_document_metadata: Dict = {}
+            anlyzed_document_content: str = ""
+            print(f"\nProcessing file: {file_name}")
+            print(f"Number of document chunks: {len(documents)}")
+
+            # Process each chunk individually to stay within token limits
+            for document_chunk_index, document_chunk in enumerate(documents, 1):
+                print(f"\nProcessing chunk {document_chunk_index}/{len(documents)}")
+                # Calculate tokens before sending to ensure we're within limits
+                print(f"    Chunk tokens: {document_chunk.metadata['chunk_token_count']}")
+                # Create prompt for single chunk
+                single_chunk_prompt: PromptValue = prompt_instance.create_single_chunk_analysis_prompt(
+                    file_name=file_name,
+                    chunk=document_chunk,
+                    chunk_index=document_chunk_index,
+                    total_chunks=len(documents),
+                )
+                # Store the master metadata
+                if not anlyzed_document_metadata:
+                    # anlyzed_document_metadata = document_chunk.metadata.copy()
+                    anlyzed_document_metadata = {
+                        "source": document_chunk.metadata.get("source"),
+                        "document_type": document_chunk.metadata.get("document_type"),
+                        "document_id": document_chunk.metadata.get("document_id"),
+                    }
+
+                # Send to LLM
+                if llm_instance.is_initialized:
+                    with llm_instance.get_llm() as model:
+                        print(f"    Total prompt tokens: {model.get_num_tokens(text=single_chunk_prompt.to_string())}")
+                        chunk_response: BaseMessage = model.invoke(input=single_chunk_prompt)
+                        chunk_response_content: str = chunk_response.model_dump()["content"]
+                        print(f"    LLM Response for chunk {document_chunk_index}:\n{chunk_response_content}\n")
+                        # Store the response for this chunk
+                        print(f"    ✓ Chunk {document_chunk_index} processed successfully")
+                        anlyzed_document_content = chunk_response_content
+                        anlyzed_document.append(Document(metadata=anlyzed_document_metadata, page_content=anlyzed_document_content))
+
+            # Store analyses for this file
+            print(f"\nFile {file_name} processed with {len(anlyzed_document_content)} chunks.")
+            anlyzed_files[file_name] = anlyzed_document
+
+        return anlyzed_files
+
     def code_summary_chunk_analysis(
         self,
         analysed_code_chunks: Dict[str, List[Document]],
         llm: Ollama,
     ) -> str:
-        abap_prompt: PromptGeneratorABAP = PromptGeneratorABAP()
+        abap_prompt: PromptGenerator = PromptGenerator()
         final_summaries: Dict[str, str] = {}
 
         for file_name, file_chunk in analysed_code_chunks.items():
@@ -56,7 +112,7 @@ class CodeAnalysis:
             total_tokens += llm.get_token_count(content=chunk.page_content)
         return total_tokens
 
-    def _hierarchical_summarization(self, file_name: str, file_chunks: List[Document], llm: Ollama, abap_prompt: PromptGeneratorABAP) -> str:
+    def _hierarchical_summarization(self, file_name: str, file_chunks: List[Document], llm: Ollama, abap_prompt: PromptGenerator) -> str:
         """Process chunks in batches and create hierarchical summaries."""
 
         # Step 1: Create batches of chunks
@@ -105,7 +161,7 @@ class CodeAnalysis:
         else:
             return intermediate_summaries[0] if intermediate_summaries else ""
 
-    def _direct_summarization(self, file_name: str, file_chunks: List[Document], llm: Ollama, abap_prompt: PromptGeneratorABAP) -> str:
+    def _direct_summarization(self, file_name: str, file_chunks: List[Document], llm: Ollama, abap_prompt: PromptGenerator) -> str:
         """Process all chunks in a single prompt (original approach)."""
 
         file_summary_prompt: PromptValue = abap_prompt.create_file_summary_prompt(
@@ -174,63 +230,3 @@ class CodeAnalysis:
             )
 
         return "\n".join(summary_parts)
-
-    def code_chunk_analysis(
-        self,
-        code_files: Dict[str, List[Document]],
-        llm: Ollama,
-    ) -> Dict[str, List[Document]]:
-        # Store results for each file
-        anlyzed_files: Dict[str, List[Document]] = {}
-        # Initialize PromptGeneratorABAP
-        abap_prompt: PromptGeneratorABAP = PromptGeneratorABAP()
-        # Process each file
-        print(f"\nTotal files to process: {len(code_files)}")
-        for file_name, document_chunks in code_files.items():
-            anlyzed_document: List[Document] = []
-            anlyzed_document_metadata: Dict = {}
-            anlyzed_document_content: str = ""
-            print(f"\nProcessing file: {file_name}")
-            print(f"Number of chunks: {len(document_chunks)}")
-
-            # Process each chunk individually to stay within token limits
-            for document_chunk_index, document_chunk in enumerate(document_chunks, 1):
-                print(f"\nProcessing chunk {document_chunk_index}/{len(document_chunks)}")
-                # Calculate tokens before sending to ensure we're within limits
-                print(f"    Chunk tokens: {document_chunk.metadata['chunk_token_count']}")
-                # Create prompt for single chunk
-                single_chunk_prompt: PromptValue = abap_prompt.create_single_chunk_analysis_prompt(
-                    file_name=file_name,
-                    chunk=document_chunk,
-                    chunk_index=document_chunk_index,
-                    total_chunks=len(document_chunks),
-                )
-                # Calculate total prompt tokens
-                CL100K_prompt_tokens: int = llm.get_token_count(content=single_chunk_prompt.to_string())
-                print(f"    Total prompt tokens: {CL100K_prompt_tokens}")
-                # Store the master metadata
-                if not anlyzed_document_metadata:
-                    # anlyzed_document_metadata = document_chunk.metadata.copy()
-                    anlyzed_document_metadata = {
-                        "source": document_chunk.metadata.get("source"),
-                        "document_type": document_chunk.metadata.get("document_type"),
-                        "document_id": document_chunk.metadata.get("document_id"),
-                    }
-
-                # Send to LLM
-                if llm.is_initialized:
-                    with llm.get_llm() as model:
-                        prompt_tokens: int = model.get_num_tokens(text=single_chunk_prompt.to_string())
-                        chunk_response: BaseMessage = model.invoke(input=single_chunk_prompt)
-                        chunk_response_content: str = chunk_response.model_dump()["content"]
-                        print(f"    LLM Response for chunk {document_chunk_index}:\n{chunk_response_content}\n")
-                        # Store the response for this chunk
-                        print(f"    ✓ Chunk {document_chunk_index} processed successfully")
-                        anlyzed_document_content = chunk_response_content
-                        anlyzed_document.append(Document(metadata=anlyzed_document_metadata, page_content=anlyzed_document_content))
-
-            # Store analyses for this file
-            print(f"\nFile {file_name} processed with {len(anlyzed_document_content)} chunks.")
-            anlyzed_files[file_name] = anlyzed_document
-
-        return anlyzed_files

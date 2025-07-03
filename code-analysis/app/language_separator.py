@@ -18,7 +18,10 @@ class ABAP:
         "ANNOTATE ENTITY": "METADATA EXTENSION",  # CDS Metadata Extension
         "DEFINE ACCESS CONTROL": "ACCESS CONTROL",  # Start of a DCL (Data Control Language) definition
         "#VALUE_HELP": "VALUE HELP",  # Value Help
-        # Behavior Definition and Projections
+        # Global and Local Class Definitions
+        "CLASS DEFINITION": "CLASS DEFINITION",  # Class Definition
+        "CLASS IMPLEMENTATION": "CLASS IMPLEMENTATION",  # Class Definition
+        "METHOD": "METHOD",  # Method Definition
     }
 
     SEPARATOR: List[str] = [

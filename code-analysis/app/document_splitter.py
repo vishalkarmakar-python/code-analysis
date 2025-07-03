@@ -1,5 +1,5 @@
 from app.language_model import Ollama
-from app.separator.abap import ABAP
+from app.language_separator import ABAP
 from hashlib import md5
 from langchain_core.documents.base import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any, ClassVar, Dict, List, Self
 
 
-class Document_Splitter_ABAP:
+class Document_Splitter:
     _instance: ClassVar[Self | None] = None
 
     def __new__(cls) -> Self:
@@ -19,14 +19,13 @@ class Document_Splitter_ABAP:
         if not hasattr(self, "_initialized"):
             self._initialized: bool = True
 
-    def split_documents(self, documents: List[Document], chunk_size: int) -> Dict[str, List[Document]]:
+    def split_documents(self, documents: List[Document], chunk_size: int, llm_instance: Ollama) -> Dict[str, List[Document]]:
         self._split_documents: Dict[str, List[Document]] = {}
         """Split ABAP code documents into smaller chunks."""
-        self._splitter: RecursiveCharacterTextSplitter = self.create_abap_splitter(chunk_size=chunk_size)
-        llm: Ollama = Ollama(model_name="GEMMA")
+        self._splitter: RecursiveCharacterTextSplitter = self.create_splitter(chunk_size=chunk_size)
         for document_index, document in enumerate(documents, 1):
             document_chunks_with_context: List[Document] = self._generate_context_for_document_chunks(
-                llm=llm,
+                llm_instance=llm_instance,
                 document_id=self._generate_document_id(document_index=document_index, document=document),
                 document_metadata=document.metadata.copy(),
                 document_chunks=self._splitter.split_documents(documents=[document]),
@@ -35,7 +34,7 @@ class Document_Splitter_ABAP:
 
         return self._split_documents
 
-    def create_abap_splitter(self, chunk_size: int) -> RecursiveCharacterTextSplitter:
+    def create_splitter(self, chunk_size: int) -> RecursiveCharacterTextSplitter:
         """Create a text splitter optimized for ABAP code."""
         return RecursiveCharacterTextSplitter(
             separators=ABAP.SEPARATOR,
@@ -45,6 +44,44 @@ class Document_Splitter_ABAP:
             is_separator_regex=False,
             keep_separator=True,
         )
+
+    def _generate_context_for_document_chunks(
+        self,
+        llm_instance: Ollama,
+        document_id: str,
+        document_metadata: Dict,
+        document_chunks: List[Document],
+    ) -> List[Document]:
+        chunks_with_context: List[Document] = []
+        """Add context to each document chunk."""
+        for document_chunk_index, document_chunk in enumerate(document_chunks, 1):
+            chunk_metadata: Dict[Any, Any] = document_metadata.copy()
+            chunk_metadata.update(
+                {
+                    # Document identification
+                    "document_type": self._get_document_type(chunk=document_chunk),
+                    "document_id": document_id,
+                    # Chunk information
+                    "chunk_index": document_chunk_index,
+                    "chunk_id": f"{document_id}_chunk_{document_chunk_index}",
+                    "chunk_token_count": llm_instance.get_token_count(content=document_chunk.page_content),
+                    "chunk_size": len(document_chunk.page_content),
+                    # Context indicators
+                    "is_first_chunk": document_chunk_index == 1,
+                    "is_last_chunk": document_chunk_index == len(document_chunks) - 1,
+                    "is_single_chunk": len(document_chunks) == 1,
+                }
+            )
+            # Create Document with enhanced content and metadata
+            chunks_with_context.append(
+                Document(
+                    # page_content=enhanced_content,
+                    metadata=chunk_metadata,
+                    page_content=document_chunk.page_content,
+                )
+            )
+
+        return chunks_with_context
 
     def _generate_document_id(self, document_index: int, document: Document) -> str:
         """Generate a unique document ID based on source and content."""
@@ -59,44 +96,6 @@ class Document_Splitter_ABAP:
             # Fallback to index and content hash
             content_hash = md5(document.page_content.encode()).hexdigest()[:8]
             return f"document_{document_index}_{content_hash}"
-
-    def _generate_context_for_document_chunks(
-        self,
-        llm: Ollama,
-        document_id: str,
-        document_metadata: Dict,
-        document_chunks: List[Document],
-    ) -> List[Document]:
-        chunks_with_context: List[Document] = []
-        """Add context to each document chunk."""
-        for chunk_index, chunk in enumerate(document_chunks, 1):
-            chunk_metadata: Dict[Any, Any] = document_metadata.copy()
-            chunk_metadata.update(
-                {
-                    # Document identification
-                    "document_type": self._get_document_type(chunk=chunk),
-                    "document_id": document_id,
-                    # Chunk information
-                    "chunk_index": chunk_index,
-                    "chunk_id": f"{document_id}_chunk_{chunk_index}",
-                    "chunk_token_count": llm.get_llm_instance.get_num_tokens(text=chunk.page_content),
-                    "chunk_size": len(chunk.page_content),
-                    # Context indicators
-                    "is_first_chunk": chunk_index == 0,
-                    "is_last_chunk": chunk_index == len(document_chunks) - 1,
-                    "is_single_chunk": len(document_chunks) == 1,
-                }
-            )
-            # Create Document with enhanced content and metadata
-            chunks_with_context.append(
-                Document(
-                    # page_content=enhanced_content,
-                    metadata=chunk_metadata,
-                    page_content=chunk.page_content,
-                )
-            )
-
-        return chunks_with_context
 
     def _get_document_type(self, chunk: Document) -> str | None:
         document_type: str | None = None

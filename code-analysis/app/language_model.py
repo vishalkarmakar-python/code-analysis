@@ -8,34 +8,10 @@ from typing import Any, ClassVar, Dict, Generator, List, Literal, Optional, Self
 
 
 class Ollama:
-    """
-    A singleton class for managing Ollama ChatLLM instances with environment-based configuration.
-
-    This class provides a centralized way to initialize and manage Ollama language models
-    with configuration loaded from environment variables. It implements the singleton pattern
-    to ensure only one instance exists per model configuration.
-
-    Attributes:
-        _instance (ClassVar[Self | None]): Class-level singleton instance storage
-    """
-
     _instance: ClassVar[Self | None] = None
     _model_name: ClassVar[str | None] = None  # Track which model was initialized
 
     def __new__(cls, model_name: str) -> Self:
-        """
-        Create or return the singleton instance of the Ollama class.
-
-        Args:
-            model_name (str): The name identifier for the model configuration
-
-        Returns:
-            Self: The singleton instance of the Ollama class
-
-        Note:
-            If an instance already exists with a different model_name, a warning is logged
-            but the existing instance is returned to maintain singleton behavior.
-        """
         if cls._instance is None:
             cls._instance = super(Ollama, cls).__new__(cls)
             cls._model_name = model_name
@@ -49,16 +25,6 @@ class Ollama:
         return cls._instance
 
     def __init__(self, model_name: str) -> None:
-        """
-        Initialize the Ollama instance with the specified model configuration.
-
-        Args:
-            model_name (str): The name identifier for the model configuration
-
-        Raises:
-            Exception: If environment variables cannot be loaded or LLM initialization fails
-            RuntimeError: If required configuration is missing or invalid
-        """
         if not hasattr(self, "_initialized"):
             # Set up logging for debugging and error tracking
             self._logger: Logger = getLogger(__name__)
@@ -93,18 +59,6 @@ class Ollama:
                 raise
 
     def _load_environment_variables(self, model_name: str) -> bool:
-        """
-        Load and validate required environment variables from .env file.
-
-        Args:
-            model_name (str): The model name identifier for configuration lookup
-
-        Returns:
-            bool: True if all required variables are loaded successfully, False otherwise
-
-        Raises:
-            Exception: If environment variables are missing or invalid
-        """
         self._config: Dict[str, Any] = {}
 
         # Define required environment variable names
@@ -144,15 +98,6 @@ class Ollama:
             raise
 
     def _create_llm_instance(self) -> ChatOllama:
-        """
-        Create and configure a ChatOllama instance with loaded configuration.
-
-        Returns:
-            ChatOllama: Configured ChatOllama instance
-
-        Raises:
-            Exception: If ChatOllama instance creation fails
-        """
         try:
             # Create ChatOllama instance with loaded configuration
             llm_instance = ChatOllama(
@@ -169,15 +114,6 @@ class Ollama:
             raise
 
     def _test_connection(self) -> bool:
-        """
-        Test the connection to the Ollama model by sending a simple test message.
-
-        Returns:
-            bool: True if connection test succeeds, False otherwise
-
-        Raises:
-            AssertionError: If LLM instance is not initialized
-        """
         # Ensure LLM instance exists before testing
         assert self._llm is not None, "Ollama model is not initialized"
 
@@ -209,20 +145,6 @@ class Ollama:
 
     @contextmanager
     def get_llm(self) -> Generator[ChatOllama, None, None]:
-        """
-        Context manager to safely access the ChatOllama instance.
-
-        Yields:
-            ChatOllama: The initialized ChatOllama instance
-
-        Raises:
-            Exception: If LLM is not initialized or operation fails
-
-        Example:
-            >>> ollama = Ollama("LLAMA3")
-            >>> with ollama.get_llm() as llm:
-            ...     response = llm.invoke("Hello!")
-        """
         # Ensure LLM is properly initialized before yielding
         if not self._initialized or not hasattr(self, "_llm"):
             raise Exception("LLM not initialized. Check initialization status.")
@@ -236,31 +158,11 @@ class Ollama:
             raise
 
     def __enter__(self) -> Self:
-        """
-        Enter the runtime context for the Ollama instance.
-
-        Returns:
-            Self: The Ollama instance
-
-        Raises:
-            Exception: If LLM is not initialized
-        """
         if not self._initialized:
             raise Exception("LLM not initialized. Check initialization status.")
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb) -> None:
-        """
-        Exit the runtime context and handle any exceptions.
-
-        Args:
-            exc_type: Exception type if an exception occurred
-            exc_val: Exception value if an exception occurred
-            exc_tb: Exception traceback if an exception occurred
-
-        Returns:
-            None: Allows exceptions to propagate normally
-        """
         if exc_type is not None:
             # Log any exceptions that occurred in the context
             self._logger.error(f"Exception occurred in Ollama context: {exc_type.__name__}: {exc_val}")
@@ -269,30 +171,10 @@ class Ollama:
 
     @property
     def is_initialized(self) -> bool:
-        """
-        Check if the Ollama LLM client is initialized.
-
-        Returns:
-            bool: True if initialized, False otherwise
-        """
         return getattr(self, "_initialized", False)
 
     @property
     def get_llm_instance(self) -> ChatOllama:
-        """
-        Get the ChatOllama instance.
-
-        Returns:
-            ChatOllama: The initialized ChatOllama instance
-
-        Raises:
-            RuntimeError: If the LLM instance is not initialized or missing
-
-        Example:
-            >>> ollama = Ollama("LLAMA3")
-            >>> llm = ollama.get_llm_instance
-            >>> response = llm.invoke("Hello!")
-        """
         if not getattr(self, "_initialized", False):
             raise RuntimeError("LLM instance is not initialized. Ensure the Ollama class was properly instantiated with valid configuration.")
 
@@ -303,61 +185,25 @@ class Ollama:
 
     @property
     def connection_exists(self) -> bool:
-        """
-        Check if a connection to the Ollama model exists.
-
-        Returns:
-            bool: True if connection test passed, False otherwise
-        """
         return getattr(self, "_is_connected", False)
 
     @property
     def model_name(self) -> Optional[str]:
-        """
-        Get the configured model name.
-
-        Returns:
-            Optional[str]: The model name if configured, None otherwise
-        """
         return getattr(self, "_model", None)
 
     @property
     def base_url(self) -> Optional[str]:
-        """
-        Get the configured base URL for the Ollama service.
-
-        Returns:
-            Optional[str]: The base URL if configured, None otherwise
-        """
         return getattr(self, "_base_url", None)
 
     @property
     def temperature(self) -> Optional[float]:
-        """
-        Get the configured temperature setting for the model.
-
-        Returns:
-            Optional[float]: The temperature value if configured, None otherwise
-        """
         return getattr(self, "_temperature", None)
 
     @property
     def model_identifier(self) -> Optional[str]:
-        """
-        Get the model identifier used during initialization.
-
-        Returns:
-            Optional[str]: The model identifier if available, None otherwise
-        """
         return getattr(self, "_model_identifier", None)
 
     def __repr__(self) -> str:
-        """
-        String representation of the Ollama instance.
-
-        Returns:
-            str: String representation showing key configuration details
-        """
         status: Literal["initialized"] | Literal["not initialized"] = "initialized" if self.is_initialized else "not initialized"
         model: str = self.model_name or "unknown"
         return f"Ollama(model='{model}', status='{status}')"

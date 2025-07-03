@@ -4,7 +4,7 @@ from langchain_core.prompts import PromptTemplate
 from typing import ClassVar, List, Self
 
 
-class PromptGeneratorABAP:
+class PromptGenerator:
     _instance: ClassVar[Self | None] = None
 
     def __new__(cls) -> Self:

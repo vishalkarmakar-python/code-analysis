@@ -16,7 +16,7 @@
       "name": "Code Analyzer",
       "type": "debugpy",
       "request": "launch",
-      "program": "${workspaceFolder}/code-analyzer/run.py",
+      "program": "${workspaceFolder}/code-analysis/run.py",
       "console": "integratedTerminal",
       "justMyCode": true,
       "env": {
