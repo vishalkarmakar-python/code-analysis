@@ -1,6 +1,5 @@
 from app.language_model import Ollama
 from app.language_separator import ABAP
-from hashlib import md5
 from langchain_core.documents.base import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from pathlib import Path
@@ -19,143 +18,131 @@ class Document_Splitter:
         if not hasattr(self, "_initialized"):
             self._initialized: bool = True
 
-    def split_documents(self, documents: List[Document], chunk_size: int, llm_instance: Ollama) -> Dict[str, List[Document]]:
+    def split_documents(
+        self,
+        documents: List[Document],
+        llm_instance: Ollama,
+    ) -> Dict[str, List[Document]]:
         self._split_documents: Dict[str, List[Document]] = {}
-        """Split ABAP code documents into smaller chunks."""
-        self._splitter: RecursiveCharacterTextSplitter = self.create_splitter(chunk_size=chunk_size)
-        for document_index, document in enumerate(documents, 1):
-            document_chunks_with_context: List[Document] = self._generate_context_for_document_chunks(
-                llm_instance=llm_instance,
-                document_id=self._generate_document_id(document_index=document_index, document=document),
-                document_metadata=document.metadata.copy(),
-                document_chunks=self._splitter.split_documents(documents=[document]),
-            )
-            self._split_documents[Path(document.metadata["source"]).stem] = document_chunks_with_context
 
+        for document_index, document in enumerate(documents, 1):
+            file_stem: str = Path(document.metadata.get("source", "unknown")).stem.lower()
+            print(f"Processing document no-{document_index}: {file_stem}")
+            # Analyze document type and adjust strategy
+            document_type: str = self._analyze_document_type(document.page_content)
+            print(f"\tDocument Type: {document_type}")
+            document_tokens: int = llm_instance.count_tokens(content=document.page_content)
+            print(f"\tDocument Token Count: {document_tokens} tokens")
+            max_tokens: int = llm_instance.model_max_token
+            print(f"\t{'*' * 50}")
+            # Split the document
+            split_document: List[Document] = self._create_splitter(
+                document=document,
+                chunk_size=min(document_tokens, max_tokens),
+            )
+            # Generate enhanced metadata
+            self._split_documents[file_stem] = self._generate_context_for_document_chunks(
+                llm_instance=llm_instance,
+                document_metadata=document.metadata.copy(),
+                document_chunks=split_document,
+                document_type=document_type,
+                document_tokens=document_tokens,
+            )
         return self._split_documents
 
-    def create_splitter(self, chunk_size: int) -> RecursiveCharacterTextSplitter:
-        """Create a text splitter optimized for ABAP code."""
-        return RecursiveCharacterTextSplitter(
-            separators=ABAP.SEPARATOR,
+    def _analyze_document_type(self, content: str) -> str:
+        """
+        Analyze the document content to determine its primary type.
+        """
+        content_lower: str = content.lower()
+
+        best_match: Dict[str, Any] = {
+            "doc_type": None,
+            "matched_count": 0,
+            "total_keywords": 0,
+            "match_percentage": 0.0,
+            "matched_keywords": [],
+            "missing_keywords": [],
+        }
+
+        results: List[Any] = []
+
+        for doc_type, keywords in ABAP.DOCUMENT_KEYWORDS.items():
+            # Count matching keywords
+            matched_keywords: List[str] = [keyword.lower() for keyword in keywords if keyword.lower() in content_lower]
+            matched_count: int = len(matched_keywords)
+            total_keywords: int = len(keywords)
+            match_percentage: float = matched_count / total_keywords if total_keywords > 0 else 0.0
+
+            # Store detailed results for this doc_type
+            result: Dict[str, Any] = {
+                "doc_type": doc_type,
+                "matched_count": matched_count,
+                "total_keywords": total_keywords,
+                "match_percentage": match_percentage,
+                "matched_keywords": matched_keywords,
+                "missing_keywords": [kw.lower() for kw in keywords if kw.lower() not in content_lower],
+            }
+            results.append(result)
+
+            # Update best match if this one is better
+            if match_percentage > best_match["match_percentage"]:
+                best_match = result.copy()
+
+        # Return best match only if it meets the threshold
+        return best_match["doc_type"]
+
+    def _create_splitter(
+        self,
+        document: Document,
+        chunk_size: int,
+    ) -> List[Document]:
+        splitter: RecursiveCharacterTextSplitter = RecursiveCharacterTextSplitter(
+            separators=ABAP.get_separators(),
             chunk_size=chunk_size,
             chunk_overlap=0,
             length_function=len,
-            is_separator_regex=False,
+            is_separator_regex=True,
             keep_separator=True,
         )
+        split_documents: List[Document] = splitter.split_documents(documents=[document])
+
+        return split_documents
 
     def _generate_context_for_document_chunks(
         self,
         llm_instance: Ollama,
-        document_id: str,
-        document_metadata: Dict,
         document_chunks: List[Document],
+        document_type: str,
+        document_metadata: Dict,
+        document_tokens: int,
     ) -> List[Document]:
+        """Enhanced context generation with document type awareness."""
         chunks_with_context: List[Document] = []
-        """Add context to each document chunk."""
-        for document_chunk_index, document_chunk in enumerate(document_chunks, 1):
+
+        for chunk_index, document_chunk in enumerate(document_chunks, 1):
             chunk_metadata: Dict[Any, Any] = document_metadata.copy()
             chunk_metadata.update(
                 {
                     # Document identification
-                    "document_type": self._get_document_type(chunk=document_chunk),
-                    "document_id": document_id,
+                    "document_type": document_type,
+                    "document_id": Path(document_metadata.get("source", "unknown")).stem.lower(),
+                    "document_tokens": document_tokens,
                     # Chunk information
-                    "chunk_index": document_chunk_index,
-                    "chunk_id": f"{document_id}_chunk_{document_chunk_index}",
-                    "chunk_token_count": llm_instance.get_token_count(content=document_chunk.page_content),
-                    "chunk_size": len(document_chunk.page_content),
+                    "chunk_index": chunk_index,
+                    "chunk_id": f"{Path(document_metadata.get('source', 'unknown')).stem.lower()}_chunk_{chunk_index}",
+                    "chunk_token_count": llm_instance.count_tokens(content=document_chunk.page_content),
                     # Context indicators
-                    "is_first_chunk": document_chunk_index == 1,
-                    "is_last_chunk": document_chunk_index == len(document_chunks) - 1,
+                    "is_first_chunk": chunk_index == 1,
+                    "is_last_chunk": chunk_index == len(document_chunks),
                     "is_single_chunk": len(document_chunks) == 1,
                 }
             )
-            # Create Document with enhanced content and metadata
             chunks_with_context.append(
                 Document(
-                    # page_content=enhanced_content,
-                    metadata=chunk_metadata,
                     page_content=document_chunk.page_content,
+                    metadata=chunk_metadata,
                 )
             )
 
         return chunks_with_context
-
-    def _generate_document_id(self, document_index: int, document: Document) -> str:
-        """Generate a unique document ID based on source and content."""
-        # Use source path if available, otherwise use content hash
-        if "source" in document.metadata:
-            source_path: Any = document.metadata["source"]
-            # Use filename and a short hash for readability
-            filename: str = Path(source_path).stem
-            content_hash: str = md5(document.page_content.encode()).hexdigest()[:8]
-            return f"{filename}_{content_hash}"
-        else:
-            # Fallback to index and content hash
-            content_hash = md5(document.page_content.encode()).hexdigest()[:8]
-            return f"document_{document_index}_{content_hash}"
-
-    def _get_document_type(self, chunk: Document) -> str | None:
-        document_type: str | None = None
-        for keyword in ABAP.KEYWORD:
-            if keyword.lower() in chunk.page_content.lower():
-                document_type = ABAP.KEYWORD[keyword]
-            else:
-                continue
-
-        return document_type
-
-    def _build_context_info(
-        self,
-        document_metadata: Dict,
-        chunk_index: int,
-        document_id: str,
-        document_type: str,
-        total_chunks: int,
-    ) -> Dict:
-        source_file: str = document_metadata.get("source", "unknown")
-        filename: str = Path(source_file).name if source_file else "unknown"
-        return {
-            "source_file": filename,
-            "document_id": document_id,
-            "document_type": document_type.upper(),
-            "chunk_position": f"{chunk_index}/{total_chunks}",
-            "is_multi_chunk": total_chunks > 1,
-        }
-
-    def _add_context_prefix(
-        self,
-        chunk_content: str,
-        context_info: dict,
-        chunk_index: int,
-        total_chunks: int,
-    ) -> str:
-        """Add context prefix to chunk content for better LLM understanding."""
-
-        # Only add prefix for multi-chunk documents
-        if not context_info["is_multi_chunk"]:
-            return chunk_content
-
-        # Create context prefix
-        prefix_lines: List[str] = [
-            "[DOCUMENT_CONTEXT]",
-            f"Source: {context_info['source_file']}",
-            f"Document ID: {context_info['document_id']}",
-            f"Document Type: {context_info['document_type']}",
-            f"Chunk: {context_info['chunk_position']}",
-        ]
-
-        # Add position indicators
-        if chunk_index == 1:
-            prefix_lines.append("Position: START of document")
-        elif chunk_index == total_chunks:
-            prefix_lines.append("Position: END of document")
-        else:
-            prefix_lines.append("Position: MIDDLE of document")
-
-        prefix_lines.append("[/DOCUMENT_CONTEXT]")
-        prefix_lines.append("")  # Empty line separator
-
-        return "\n".join(prefix_lines) + chunk_content

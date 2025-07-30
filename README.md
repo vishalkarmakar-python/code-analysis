@@ -15,6 +15,7 @@ This documentation is organized into separate guides for easy reference:
 5. [Code Formatting Guide](readme/code-formatting.md) - Setting up Black and Ruff for code formatting and linting
 6. [Troubleshooting and Resources](readme/troubleshooting.md) - Common issues and additional learning resources
 7. [ChatOllama](readme/chatOllama.md) - ChatOllama documentation from LangChain
+8. [Tiktoken](readme/tiktoken.md) - TikToken documentation from Token Calculation
 
 ## Version History
 

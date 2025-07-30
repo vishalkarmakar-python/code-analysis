@@ -4,6 +4,7 @@ from app.document_splitter import Document_Splitter
 from app.language_model import Ollama
 from app.language_separator import ABAP
 from app.prompt_generator import PromptGenerator
+from app.structured_output import Analysis_Chunk, Single_Chunk
 from typing import List
 
 __all__: List[str] = [
@@ -13,4 +14,6 @@ __all__: List[str] = [
     "Ollama",
     "PromptGenerator",
     "CodeAnalysis",
+    "Single_Chunk",
+    "Analysis_Chunk",
 ]

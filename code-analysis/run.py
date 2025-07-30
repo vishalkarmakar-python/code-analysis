@@ -17,29 +17,37 @@ def main() -> None:
         directory["code"] = directory_path
 
         document_loader: Document_Loader = Document_Loader()
-        splitter: Document_Splitter = Document_Splitter()
-        code_analysis: CodeAnalysis = CodeAnalysis()
-
         print("\n=== Step 1: Loading Documents ===")
         documents: List[Document] = document_loader.load_directory(directories=directory)
         print(f"Loaded {len(documents)} documents")
 
+        llm_instance: Ollama = Ollama(model_name="QWEN")
+        splitter: Document_Splitter = Document_Splitter()
         print("\n=== Step 2: Splitting Documents into Chunks ===")
         code_files: Dict[str, List[Document]] = splitter.split_documents(
             documents=documents,
-            chunk_size=1024,
-            llm_instance=Ollama(model_name="GEMMA"),
-        )  # Assuming llm is not needed for this example
+            llm_instance=llm_instance,
+        )
         print(f"Split into {len(code_files)} files with chunks")
 
+        code_analysis: CodeAnalysis = CodeAnalysis()
+        prompt_instance: PromptGenerator = PromptGenerator()
         print("\n=== Step 3: Analyzing Individual Chunks ===")
         # Store results for each file
         analysed_code_chunks: Dict[str, List[Document]] = code_analysis.code_chunk_analysis(
             code_files=code_files,
-            prompt_instance=PromptGenerator(),
-            llm_instance=Ollama(model_name="GEMMA"),
+            prompt_instance=prompt_instance,
+            llm_instance=llm_instance,
         )
         print(f"Analyzed {len(analysed_code_chunks)} files")
+
+        # print("\n=== Step 4: Summarizing Code Analysis ===")
+        # # Final results for each file
+        # analysed_code_summary: str = code_analysis.code_summary_chunk_analysis(
+        #     analysed_code_chunks=analysed_code_chunks,
+        #     llm=Ollama(model_name="GEMMA"),
+        # )
+        # print(f"Analyzed {len(analysed_code_chunks)} files")
 
 
 if __name__ == "__main__":
