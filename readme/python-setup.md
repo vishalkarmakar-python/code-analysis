@@ -241,38 +241,39 @@ This section covers package management and virtual environment commands for pip,
 
 UV is a fast Python package installer and resolver.
 
-| Operation                      | Command                            | Alternative (if UV not in PATH)              | Description                                         |
-| ------------------------------ | ---------------------------------- | -------------------------------------------- | --------------------------------------------------- |
-| **Installation**               |                                    |                                              |                                                     |
-| Install UV                     | `pip install uv==0.1.24`           | -                                            | Install UV package manager (current stable version) |
-| Verify installation            | `uv --version`                     | `python -m uv --version`                     | Check UV installation                               |
-| **Project Setup**              |                                    |                                              |                                                     |
-| Initialize project             | `uv init`                          | `python -m uv init`                          | Create a new project configuration                  |
-| Create virtual environment     | `uv venv`                          | `python -m uv venv`                          | Create a new virtual environment                    |
-| Create with specific Python    | `uv venv --python=3.11`            | `python -m uv venv --python=3.11`            | Create with specific Python version                 |
-| Activate virtual env (Windows) | `.venv\Scripts\activate`           | -                                            | Activate the environment on Windows                 |
-| Activate virtual env (Unix)    | `source .venv/bin/activate`        | -                                            | Activate the environment on Unix systems            |
-| Deactivate virtual environment | `deactivate`                       | -                                            | Exit the virtual environment                        |
-| **Package Management**         |                                    |                                              |                                                     |
-| Add package                    | `uv add package_name`              | `python -m uv add package_name`              | Add a package to your project                       |
-| Add dev dependency             | `uv add --dev package_name`        | `python -m uv add --dev package_name`        | Add a development-only dependency                   |
-| Add with version constraint    | `uv add "package_name>=1.0.0"`     | `python -m uv add "package_name>=1.0.0"`     | Add package with version constraints                |
-| Install from requirements      | `uv pip sync requirements.txt`     | `python -m uv pip sync requirements.txt`     | Install packages from requirements file             |
-| Install from pyproject.toml    | `uv pip sync`                      | `python -m uv pip sync`                      | Install dependencies from project file              |
-| **Updating Packages**          |                                    |                                              |                                                     |
-| Update dependencies            | `uv pip sync --upgrade`            | `python -m uv pip sync --upgrade`            | Update all dependencies                             |
-| Update specific package        | `uv add --upgrade package_name`    | `python -m uv add --upgrade package_name`    | Update a specific package                           |
-| **Managing Requirements**      |                                    |                                              |                                                     |
-| Generate requirements          | `uv pip freeze > requirements.txt` | `python -m uv pip freeze > requirements.txt` | Create requirements file                            |
-| **Package Analysis**           |                                    |                                              |                                                     |
-| View dependency tree           | `uv tree package_name`             | `python -m uv tree package_name`             | Display dependency tree for a specific package      |
-| View all dependencies          | `uv tree`                          | `python -m uv tree`                          | Display entire dependency tree for project          |
-| View with depth limit          | `uv tree --depth=2`                | `python -m uv tree --depth=2`                | Limit dependency tree depth to specified level      |
-| **Other Commands**             |                                    |                                              |                                                     |
-| List packages                  | `uv pip list`                      | `python -m uv pip list`                      | List installed packages                             |
-| Show outdated packages         | `uv pip list --outdated`           | `python -m uv pip list --outdated`           | Show packages with available updates                |
-| Uninstall package              | `uv pip uninstall package_name`    | `python -m uv pip uninstall package_name`    | Remove an installed package                         |
-| Show package info              | `uv pip show package_name`         | `python -m uv pip show package_name`         | Display package metadata                            |
+| Operation                      | Command                                                    | Alternative (if UV not in PATH)                                      | Description                                         |
+| ------------------------------ | ---------------------------------------------------------- | -------------------------------------------------------------------- | --------------------------------------------------- |
+| **Installation**               |                                                            |                                                                      |                                                     |
+| Install UV                     | `pip install uv==0.1.24`                                   | -                                                                    | Install UV package manager (current stable version) |
+| Verify installation            | `uv --version`                                             | `python -m uv --version`                                             | Check UV installation                               |
+| **Project Setup**              |                                                            |                                                                      |                                                     |
+| Initialize project             | `uv init`                                                  | `python -m uv init`                                                  | Create a new project configuration                  |
+| Initialize project with name   | `uv init<project_name> --description<project_description>` | `python -m uv init<project_name> --description<project_description>` | Create a new project with name and description      |
+| Create virtual environment     | `uv venv`                                                  | `python -m uv venv`                                                  | Create a new virtual environment                    |
+| Create with specific Python    | `uv venv --python=3.11`                                    | `python -m uv venv --python=3.11`                                    | Create with specific Python version                 |
+| Activate virtual env (Windows) | `.venv\Scripts\activate`                                   | -                                                                    | Activate the environment on Windows                 |
+| Activate virtual env (Unix)    | `source .venv/bin/activate`                                | -                                                                    | Activate the environment on Unix systems            |
+| Deactivate virtual environment | `deactivate`                                               | -                                                                    | Exit the virtual environment                        |
+| **Package Management**         |                                                            |                                                                      |                                                     |
+| Add package                    | `uv add package_name`                                      | `python -m uv add package_name`                                      | Add a package to your project                       |
+| Add dev dependency             | `uv add --dev package_name`                                | `python -m uv add --dev package_name`                                | Add a development-only dependency                   |
+| Add with version constraint    | `uv add "package_name>=1.0.0"`                             | `python -m uv add "package_name>=1.0.0"`                             | Add package with version constraints                |
+| Install from requirements      | `uv pip sync requirements.txt`                             | `python -m uv pip sync requirements.txt`                             | Install packages from requirements file             |
+| Install from pyproject.toml    | `uv pip sync`                                              | `python -m uv pip sync`                                              | Install dependencies from project file              |
+| **Updating Packages**          |                                                            |                                                                      |                                                     |
+| Update dependencies            | `uv pip sync --upgrade`                                    | `python -m uv pip sync --upgrade`                                    | Update all dependencies                             |
+| Update specific package        | `uv add --upgrade package_name`                            | `python -m uv add --upgrade package_name`                            | Update a specific package                           |
+| **Managing Requirements**      |                                                            |                                                                      |                                                     |
+| Generate requirements          | `uv pip freeze > requirements.txt`                         | `python -m uv pip freeze > requirements.txt`                         | Create requirements file                            |
+| **Package Analysis**           |                                                            |                                                                      |                                                     |
+| View dependency tree           | `uv tree package_name`                                     | `python -m uv tree package_name`                                     | Display dependency tree for a specific package      |
+| View all dependencies          | `uv tree`                                                  | `python -m uv tree`                                                  | Display entire dependency tree for project          |
+| View with depth limit          | `uv tree --depth=2`                                        | `python -m uv tree --depth=2`                                        | Limit dependency tree depth to specified level      |
+| **Other Commands**             |                                                            |                                                                      |                                                     |
+| List packages                  | `uv pip list`                                              | `python -m uv pip list`                                              | List installed packages                             |
+| Show outdated packages         | `uv pip list --outdated`                                   | `python -m uv pip list --outdated`                                   | Show packages with available updates                |
+| Uninstall package              | `uv pip uninstall package_name`                            | `python -m uv pip uninstall package_name`                            | Remove an installed package                         |
+| Show package info              | `uv pip show package_name`                                 | `python -m uv pip show package_name`                                 | Display package metadata                            |
 
 ### Poetry Commands
 
