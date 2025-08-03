@@ -1,4 +1,6 @@
 .venv
 __pycache__
 uv.lock
-code_files
+files
+backup_files
+analyzed_documents
