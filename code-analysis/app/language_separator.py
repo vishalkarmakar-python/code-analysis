@@ -39,6 +39,7 @@ class ABAP:
             "provider",
             "contract",
             "transactional_query",
+            "projection",
         ],
         "ROOT ENTITY": [
             "define",
@@ -187,14 +188,6 @@ class ABAP:
         "\nPRIVATE SECTION.",
         "\nINTERFACE ",
         "\nENDINTERFACE.",
-        # === Comments and Separators ===
-        # "(?<=\\.)\\s+",  # Split on period followed by space
-        # "(?<=\\n)\\s*\\*{1,2}\\s*",  # Split on single or double asterisk at the start of a line
-        # "\n*----------------------------------------------------------------------*",
-        # "\n*=======================================================================*",
-        # "\n* ",  # Standard comment line
-        # "\n*",  # Standard comment line without space
-        # '\n"',  # Modern comment style
     ]
 
     @classmethod

@@ -102,7 +102,7 @@ class Document_Splitter:
             chunk_size=chunk_size,
             chunk_overlap=0,
             length_function=len,
-            is_separator_regex=True,
+            is_separator_regex=False,
             keep_separator=True,
         )
         split_documents: List[Document] = splitter.split_documents(documents=[document])

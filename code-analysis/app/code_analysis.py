@@ -1,15 +1,15 @@
 from app.language_model import Ollama
 from app.prompt_generator import PromptGenerator
-from app.structured_output import Analysis_Chunk
+from app.structured_output import Code_Analysis
 from langchain_core.documents.base import Document
 from langchain_core.language_models import LanguageModelInput
 from langchain_core.prompt_values import PromptValue
 from langchain_core.runnables import Runnable
 from pydantic import BaseModel
-from typing import Any, ClassVar, Dict, List, Self, Union
+from typing import ClassVar, Dict, List, Self, Union
 
 
-class CodeAnalysis:
+class Analysis:
     _instance: ClassVar[Self | None] = None
 
     def __new__(cls) -> Self:
@@ -24,7 +24,7 @@ class CodeAnalysis:
             self.MAX_TOKENS_PER_BATCH = 3000  # Conservative limit
             self.MAX_CHUNKS_PER_BATCH = 5  # Fallback limit by chunk count
 
-    def code_chunk_analysis(
+    def chunk_analysis(
         self,
         code_files: Dict[str, List[Document]],
         prompt_instance: PromptGenerator,
@@ -55,27 +55,33 @@ class CodeAnalysis:
                     document_index=document_chunk_index,
                     total_chunks=len(documents),
                 )
+                print(f"    Total prompt tokens: {llm_instance.count_tokens(content=analysis_prompt.to_string())}")
                 # Store the master metadata
                 if not anlyzed_document_metadata:
-                    # anlyzed_document_metadata = document_chunk.metadata.copy()
-                    anlyzed_document_metadata = {
-                        "source": document_chunk.metadata.get("source"),
-                        "document_type": document_chunk.metadata.get("document_type"),
-                        "document_id": document_chunk.metadata.get("document_id"),
-                    }
+                    anlyzed_document_metadata = document_chunk.metadata.copy()
                 # Send to LLM
                 with llm_instance.get_llm() as model:
-                    print(f"    Total prompt tokens: {llm_instance.count_tokens(content=analysis_prompt.to_string())}")
-                    structured_model: Runnable[LanguageModelInput, Union[Dict, BaseModel]] = model.with_structured_output(schema=Analysis_Chunk)
-                    chunk_response: Dict[Any, Any] | BaseModel = structured_model.invoke(input=analysis_prompt)
-                    chunk_response_structured: Analysis_Chunk = Analysis_Chunk.model_validate(chunk_response)
-                    print(f"    Analysis for File: {file_name}:\n{chunk_response_structured.analysis}\n")
-                    print(f"    Summary for File: {file_name}:\n{chunk_response_structured.summary}\n")
-                    print(f"{'*' * 100}")
-                    anlyzed_document_content = f"{chunk_response_structured.analysis} \n\n {chunk_response_structured.summary}"
-                    print(f"    Chunk content: {anlyzed_document_content}")
+                    structured_model: Runnable[LanguageModelInput, Union[Dict, BaseModel]] = model.with_structured_output(schema=Code_Analysis)
+                    chunk_response: Code_Analysis = Code_Analysis.model_validate(structured_model.invoke(input=analysis_prompt))
+                    # Analysis
+                    anlyzed_document_metadata.update(
+                        {
+                            "document_type": "Analysis",
+                        }
+                    )
+                    anlyzed_document_content = chunk_response.analysis
                     anlyzed_document.append(Document(metadata=anlyzed_document_metadata, page_content=anlyzed_document_content))
+                    print(f"    Analysis for File: {file_name}:\n{chunk_response.analysis}\n")
+                    # Summary
+                    anlyzed_document_metadata.update(
+                        {
+                            "document_type": "Summary",
+                        }
+                    )
+                    anlyzed_document_content = chunk_response.summary
+                    anlyzed_document.append(Document(metadata=anlyzed_document_metadata, page_content=anlyzed_document_content))
+                    print(f"    Summary for File: {file_name}:\n{chunk_response.summary}\n")
                     # Store analyses for this file
-                    print(f"\nFile {file_name} processed with {len(anlyzed_document_content)} chunks.")
                     anlyzed_files[file_name] = anlyzed_document
+                    print(f"{'*' * 100}")
         return anlyzed_files

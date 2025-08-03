@@ -3,3 +3,4 @@ __pycache__
 uv.lock
 files
 backup_files
+analyzed_documents
