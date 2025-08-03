@@ -236,7 +236,7 @@ This section covers essential Git commands for both local and remote repository 
 |                         | Set upstream             | `git push --set-upstream <remote> <branch>`              | Push and track branch                         |
 |                         | Push and track           | `git push -u origin <branch>`                            | Shorter form of set-upstream                  |
 |                         | Push correction branch   | `git push -u origin correction/<name>`                   | Push and track correction branch              |
-|                         | Delete remote branch     | `git push <remote> --delete <branch>`                    | Remove branch from remote                     |
+|                         | Delete remote branch     | `git push origin --delete <branch>`                      | Remove branch from remote                     |
 |                         | Delete remote branch alt | `git push <remote> :<branch>`                            | Alternative syntax for deletion               |
 |                         | Set default branch       | `git remote set-head origin -a`                          | Auto-detect default branch                    |
 |                         | Create remote branch     | `git push origin local-branch:remote-branch`             | Create branch with different name on remote   |
