@@ -1,0 +1,7 @@
+[project]
+name = "generate-document"
+version = "0.1.0"
+description = "AI Project for generating technical specification document"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = []
