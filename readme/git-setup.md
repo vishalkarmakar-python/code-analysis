@@ -214,6 +214,7 @@ This section covers essential Git commands for both local and remote repository 
 |                         | Add remote               | `git remote add <name> <repository_url>`                 | Add remote repository reference               |
 |                         | Add upstream             | `git remote add upstream <original_repo_url>`            | Add original repo as upstream                 |
 |                         | Show remote info         | `git remote -v`                                          | List remote connections                       |
+|                         | Show remote repository   | `git remote -v show`                                     | List all remote connections                   |
 |                         | Change remote URL        | `git remote set-url <name> <new_url>`                    | Update remote repository URL                  |
 |                         | Rename remote            | `git remote rename <old_name> <new_name>`                | Change remote reference name                  |
 |                         | Remove remote            | `git remote remove <name>`                               | Delete remote connection                      |
