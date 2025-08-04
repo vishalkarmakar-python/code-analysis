@@ -1,6 +1,6 @@
 # ABAP Code Analysis with AI
 
-This project is a Python application that leverages large language models (LLMs) to analyze ABAP (Advanced Business Application Programming) code. It automatically loads ABAP source code files, splits them into manageable chunks, analyzes each chunk for its logic and purpose, and generates a comprehensive report in Markdown format.
+This project is a Python application that leverages Ollama QWEN as LLM to analyze ABAP code. It automatically loads ABAP source code files, splits them into manageable chunks, analyzes each chunk for its logic and purpose, and generates a comprehensive analysis and summary in Markdown format.
 
 ## Table of Contents
 
@@ -53,29 +53,47 @@ This project is a Python application that leverages large language models (LLMs)
 ## Prerequisites
 
 - Python 3.11 or higher
-- [Ollama](https://ollama.ai/) installed and running with a desired language model (e.g., `qwen:7b-chat`).
+- Docker Desktop v4.40 or highr
+- [Ollama](https://hub.docker.com/r/ollama/ollama) image installed in Docker Desktop.
+- LLM: [qwen2.5-coder:7b](https://ollama.com/library/qwen2.5-coder:7b) for analyzing ABAP Code.
 
 ## Installation
 
-1.  **Clone the repository:**
+1. **VS Code**
 
-    ```bash
-    git clone [https://github.com/your-username/abap-code-analysis.git](https://github.com/your-username/abap-code-analysis.git)
-    cd abap-code-analysis
-    ```
+   - Install [VS-Code](https://code.visualstudio.com/)
 
-2.  **Create a virtual environment:**
+2. **Python**
 
-    ```bash
-    python -m venv .venv
-    source .venv/bin/activate  # On Windows, use `.venv\Scripts\activate`
-    ```
+   - Download [Python](https://www.python.org/downloads/)
 
-3.  **Install the dependencies:**
+3. **UV**
 
-    ```bash
-    pip install -r requirements.txt
-    ```
+   - Project Management tool for [Python](https://docs.astral.sh/uv/guides/install-python/#getting-started)
+
+4. **RUFF**
+
+   - Linter for [Python](https://docs.astral.sh/ruff/installation/)
+
+5. **Clone the repository:**
+   [code-analysis](https://github.com/vishalkarmakar-python/code-analysis.git)
+
+   ```bash
+   git clone https://github.com/vishalkarmakar-python/code-analysis.git
+   cd code-analysis
+   ```
+
+6. **Create a virtual environment:**
+
+   - `uv venv .venv`
+   - mac: `source .venv/bin/activate`
+   - windows: `.venv\Scripts\activate`
+
+7. **Install the dependencies:**
+
+   ```bash
+   uv add <library name>
+   ```
 
 ## Configuration
 
