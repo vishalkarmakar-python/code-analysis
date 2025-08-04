@@ -10,8 +10,8 @@ from typing import Dict, List
 
 
 def main() -> None:
-    dummy_path: str = "C:\\Users\\Vishal Karmakar\\Documents\\SAP\\Artificial-Intelligence\\code-analysis\\files\\backup"
-    output_filepath: str = "C:\\Users\\Vishal Karmakar\\Documents\\SAP\\Artificial-Intelligence\\code-analysis\\analyzed_documents\\"
+    dummy_path: str = "C:\\Users\\Vishal Karmakar\\Documents\\SAP\\Artificial-Intelligence\\code-analysis\\files\\code"
+    output_filepath: str = "C:\\Users\\Vishal Karmakar\\Documents\\SAP\\Artificial-Intelligence\\code-analysis\\files\\analyzed_documents\\"
 
     directory: Dict[str, Path] = {}
     directory_path: Path = Path(input("\nEnter the path for the code files: ").strip() or dummy_path)

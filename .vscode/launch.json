@@ -2,17 +2,6 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Document Generator",
-      "type": "debugpy",
-      "request": "launch",
-      "program": "${workspaceFolder}/document_generator/run.py",
-      "console": "integratedTerminal",
-      "justMyCode": true,
-      "env": {
-        "DEBUG": "true"
-      }
-    },
-    {
       "name": "Code Analyzer",
       "type": "debugpy",
       "request": "launch",
