@@ -7,14 +7,14 @@
   "settings": {
     "extensions.ignoreRecommendations": true,
     "files.exclude": {
-      "**/.git": true,
-      "**/*.code-workspace": true,
-      "**/*.vscode": true,
-      "**/.venv": true,
-      "**/__pycache__": true,
-      ".gitignore": true,
-      "**/.ruff_cache": true,
-      "**/cls": true
+      "**/.git": false,
+      "**/*.code-workspace": false,
+      "**/*.vscode": false,
+      "**/.venv": false,
+      "**/__pycache__": false,
+      ".gitignore": false,
+      "**/.ruff_cache": false,
+      "**/cls": false
     },
     //Pylance
     "python.analysis.autoFormatStrings": true,
