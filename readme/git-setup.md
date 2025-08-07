@@ -150,7 +150,8 @@ This section covers essential Git commands for both local and remote repository 
 |                       | Configure email          | `git config --local user.email "email@example.com"`  | Set email for current repository                   |
 |                       | Configure global name    | `git config --global user.name "Your Name"`          | Set default username for all repositories          |
 |                       | Configure global email   | `git config --global user.email "email@example.com"` | Set default email for all repositories             |
-| **Basic Actions**     | Add file                 | `git add <file_name>`                                | Stage specific file                                |
+| **Basic Actions**     | Add file                 | `git add <file_name>`                                | Add specific file into Staging                     |
+|                       | Remove file              | `git rm --cached <file_name>`                        | Remove specific file from Staging                  |
 |                       | Add all files            | `git add .`                                          | Stage all changes                                  |
 |                       | Add by pattern           | `git add *.py`                                       | Stage files by pattern                             |
 |                       | Commit changes           | `git commit -m "<Commit Message>"`                   | Record changes to repository                       |

@@ -1,16 +1,25 @@
+"""
+Contains ABAP language-specific constants and configurations.
+
+This class acts as a central repository for data related to the ABAP language,
+such as keywords for identifying object types and common separators for
+splitting code logically. This centralizes ABAP-specific knowledge, making the
+other modules more generic.
+"""
+
 from typing import Dict, List
 
 
 class ABAP:
     """
-    Enhanced class to hold separators used in the document generator.
-    This class provides comprehensive text splitters for all ABAP code types including:
-    - Classical ABAP reports, function modules, BAPIs
-    - RAP objects (CDS entities, behavior definitions)
-    - Enhancement framework (BADIs, User Exits, Customer Exits)
-    - Modern ABAP syntax (7.4+, EML)
-    - Cloud-specific constructs
+    A static class (namespace) for ABAP-specific constants.
+
+    It holds dictionaries of keywords to identify different ABAP object types
+    and lists of separators for intelligent code splitting.
     """
+
+    # A mapping of ABAP object types to a list of keywords that commonly appear in them.
+    # This is used by `Document_Splitter` to guess the type of a given code file.
 
     # New: Compound keywords for separated word patterns
     DOCUMENT_KEYWORDS: Dict[str, List[str]] = {
@@ -163,7 +172,9 @@ class ABAP:
             "endfunction",
         ],
     }
-
+    # A list of strings that represent logical boundaries in ABAP code.
+    # Used by `RecursiveCharacterTextSplitter` to create meaningful chunks.
+    # The order is important, starting from more specific/larger constructs
     SEPARATOR: List[str] = [
         # === RAP Objects & CDS Definitions ===
         "\nDEFINE ROOT VIEW ENTITY",
@@ -192,16 +203,12 @@ class ABAP:
 
     @classmethod
     def get_document_keywords(cls) -> Dict[str, List[str]]:
-        """
-        Returns the enhanced keyword dictionary with all ABAP constructs.
-        """
+        """Returns a copy of the document keywords dictionary."""
         return cls.DOCUMENT_KEYWORDS.copy()
 
     @classmethod
     def get_separators(cls) -> List[str]:
-        """
-        Returns the enhanced separator list with all ABAP constructs.
-        """
+        """Returns a copy of the separator list."""
         return cls.SEPARATOR.copy()
 
     @classmethod

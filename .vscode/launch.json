@@ -2,10 +2,10 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Document Generator",
+      "name": "Code Analyzer",
       "type": "debugpy",
       "request": "launch",
-      "program": "${workspaceFolder}/document_generator/run.py",
+      "program": "${workspaceFolder}/code-analysis/run.py",
       "console": "integratedTerminal",
       "justMyCode": true,
       "env": {
@@ -13,10 +13,10 @@
       }
     },
     {
-      "name": "Code Analyzer",
+      "name": "Generate Document",
       "type": "debugpy",
       "request": "launch",
-      "program": "${workspaceFolder}/code-analysis/run.py",
+      "program": "${workspaceFolder}/generate-document/run.py",
       "console": "integratedTerminal",
       "justMyCode": true,
       "env": {
