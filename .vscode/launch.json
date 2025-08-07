@@ -11,6 +11,17 @@
       "env": {
         "DEBUG": "true"
       }
+    },
+    {
+      "name": "Generate Document",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/generate-document/run.py",
+      "console": "integratedTerminal",
+      "justMyCode": true,
+      "env": {
+        "DEBUG": "true"
+      }
     }
   ]
 }
